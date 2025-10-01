@@ -1,0 +1,19 @@
+# UI
+streamlit==1.38.0
+
+# Database
+sqlalchemy==2.0.34
+psycopg2-binary==2.9.9
+
+# Migration
+alembic==1.13.2
+
+# Data handling
+pandas==2.2.3
+openpyxl==3.1.5  # buat baca file Excel di Streamlit
+
+# Security
+bcrypt==4.1.2
+
+# Optional (bisa bantu debugging/logging)
+python-dotenv==1.0.1
