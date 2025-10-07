@@ -47,15 +47,27 @@ def show():
 
     st.write("Belum punya berkas? Unduh template dataset.")
 
-    with open("assets/files/DummyExcel.xlsx", "rb") as template_dataset:
+    with open("assets/files/Template_Dataset_Clustering_Wilayah.xlsx", "rb") as template_dataset:
         st.download_button(
             label="Download Template Dataset",
             data=template_dataset,
-            file_name="template.xlsx",
+            file_name="template_dataset_clustering_wilayah.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
+            use_container_width=False
         )
     
+    st.markdown(
+        """
+        <div style="text-align: center; margin-top: 15px; font-size: 16px;">
+            <a href="/petunjuk_penggunaan_template" 
+            style="color: #2563EB; text-decoration: none; font-weight: 500;"
+            target="_self">
+                Petunjuk Pengisian Template Dataset
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
     #Pilih Metode
     st.markdown(
