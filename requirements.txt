@@ -10,10 +10,10 @@ alembic==1.13.2
 
 # Data handling
 pandas==2.2.3
-openpyxl==3.1.5  # buat baca file Excel di Streamlit
+openpyxl==3.1.5
 
 # Security
 bcrypt==4.1.2
 
-# Optional (bisa bantu debugging/logging)
-python-dotenv==1.0.1
+# ReportLab
+reportlab==4.2.2

@@ -6,16 +6,19 @@ def render_sidebar(cookies=None):
         if cookies is not None:
             cookies["page"] = page_name
             cookies.save()
-        st.rerun()  # ⬅️ langsung rerun biar pindah sekali klik
+        st.rerun()
 
     if st.sidebar.button("Beranda", use_container_width=True):
         set_page("beranda")
 
     if st.sidebar.button("Clustering Wilayah", use_container_width=True):
-        set_page("clustering")
+        set_page("clustering_wilayah")
+    
+    if st.sidebar.button("Hasil Clustering Wilayah", use_container_width=True):
+        set_page("hasil_clustering")
 
     if st.sidebar.button("Petunjuk Penggunaan", use_container_width=True):
-        set_page("petunjuk")
+        set_page("petunjuk_penggunaan_website")
 
     if st.sidebar.button("Tentang", use_container_width=True):
         set_page("tentang")

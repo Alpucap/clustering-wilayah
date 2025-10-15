@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models import ClusteringDatasetD
 
+#Method untuk add dataset detail ke DB
 def add_dataset_detail(db: Session, header_id: int, tahun: int, kabupaten: str, ahh: float, p0: float, p1: float, p2: float, rls: float):
     detail = ClusteringDatasetD(
         clustering_dataset_h_id=header_id,
@@ -17,6 +18,7 @@ def add_dataset_detail(db: Session, header_id: int, tahun: int, kabupaten: str, 
     db.refresh(detail)
     return detail
 
+#Method untuk get dataset detail by header id
 def get_details_by_header(db: Session, header_id: int):
     return db.query(ClusteringDatasetD).filter(
         ClusteringDatasetD.clustering_dataset_h_id == header_id

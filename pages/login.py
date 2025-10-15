@@ -64,14 +64,8 @@ def show(cookies):
     st.markdown("---")
     
     #Link ke register
-    st.markdown(
-        """
-        <div style="text-align:center;margin-top:15px;font-size:16px;">
-            Belum punya akun? 
-            <a href="#" onclick="window.location.reload();" style="color:#2563EB;text-decoration:underline;font-weight:500;">
-                Daftar sekarang
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("Belum Punya Akun? Daftar sekarang", use_container_width=True):
+            st.session_state.page = "register"
+            st.rerun()

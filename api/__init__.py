@@ -10,7 +10,7 @@ from .user import (
 )
 
 from .dataset_h import (
-    create_dataset_header,
+    add_dataset_header,
     get_datasets_by_user,
 )
 
@@ -28,7 +28,7 @@ __all__ = [
     "get_user_by_id",
 
     # Dataset Header
-    "create_dataset_header",
+    "add_dataset_header",
     "get_datasets_by_user",
 
     # Dataset Detail

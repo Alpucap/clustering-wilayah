@@ -3,12 +3,12 @@ from components.sidebar import render_sidebar
 
 # Import semua page
 import pages.beranda as beranda
-import pages.clustering_wilayah as clustering
-import pages.hasil_clustering as hasil
+import pages.clustering_wilayah as clustering_wilayah
+import pages.hasil_clustering as hasil_clustering
 import pages.login as login
 import pages.register as register
 import pages.profile as profile
-import pages.petunjuk_penggunaan_website as petunjuk
+import pages.petunjuk_penggunaan_website as petunjuk_penggunaan_website
 import pages.tentang as tentang
 
 from database import SessionLocal
@@ -68,17 +68,17 @@ render_sidebar(cookies)
 page = st.session_state.page
 if page == "beranda":
     beranda.show()
-elif page == "clustering":
-    clustering.show()
-elif page == "hasil":
-    hasil.show()
+elif page == "clustering_wilayah":
+    clustering_wilayah.show()
+elif page == "hasil_clustering":
+    hasil_clustering.show()
 elif page == "login":
     login.show(cookies)
 elif page == "register":
     register.show()
 elif page == "profile":
     profile.show(cookies)
-elif page == "petunjuk":
-    petunjuk.show()
+elif page == "petunjuk_penggunaan_website":
+    petunjuk_penggunaan_website.show()
 elif page == "tentang":
     tentang.show()

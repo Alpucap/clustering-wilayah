@@ -22,7 +22,7 @@ def validate_password(password: str) -> bool:
     return True
 
 #Method untuk validasi semua field
-def validate_all_fields(username, email, password, db):
+def validate_all_fields(username, email, password, confirm_password, db):
     """Validate all fields and return list of errors"""
     errors = []
     
@@ -50,7 +50,13 @@ def validate_all_fields(username, email, password, db):
     elif not validate_password(password):
         errors.append(("password", "Password minimal 8 karakter dengan huruf besar, kecil, angka, dan simbol"))
     
+    if not confirm_password:
+        errors.append(("confirm_password", "Konfirmasi password wajib diisi"))
+    elif password != confirm_password:
+        errors.append(("confirm_password", "Password tidak sama"))
+        
     return errors
+
 
 def show():
     st.markdown(
@@ -62,7 +68,7 @@ def show():
     if 'field_errors' not in st.session_state:
         st.session_state.field_errors = {}
 
-    #Username field
+    #Username
     username = st.text_input(
         "Username *", 
         placeholder="Masukkan username (3-50 karakter)",
@@ -74,7 +80,7 @@ def show():
             unsafe_allow_html=True
         )
 
-    #Email field
+    #Email
     email = st.text_input(
         "Email *", 
         placeholder="contoh@domain.com",
@@ -86,7 +92,7 @@ def show():
             unsafe_allow_html=True
         )
 
-    #Password field
+    #Password
     password = st.text_input(
         "Password *", 
         type="password",
@@ -98,14 +104,27 @@ def show():
             f"<p style='color: red; font-size: 14px; margin-top: -10px;'>{st.session_state.field_errors['password']}</p>", 
             unsafe_allow_html=True
         )
+    
+    #Confirm Password
+    confirm_password = st.text_input(
+        "Konfirmasi Password *", 
+        type="password",
+        placeholder="Ulangi Password Diatas",
+        help="Isi harus sama dengan password diatas"
+    )
+    if 'confirm_password' in st.session_state.field_errors:
+        st.markdown(
+            f"<p style='color: red; font-size: 14px; margin-top: -10px;'>{st.session_state.field_errors['confirm_password']}</p>", 
+            unsafe_allow_html=True
+        )
 
     st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
 
     #Daftar button
     if st.button("Daftar", use_container_width=True):
         db = SessionLocal()
-        errors = validate_all_fields(username, email, password, db)
-
+        errors = validate_all_fields(username, email, password, confirm_password, db)
+        
         if errors:
             st.session_state.field_errors = {field: message for field, message in errors}
             st.rerun()
@@ -120,15 +139,8 @@ def show():
 
     #Link ke Login
     st.markdown("---")
-    st.markdown(
-        """
-        <div style="text-align: center; margin-top: 15px; font-size: 16px;">
-            Sudah punya akun? 
-            <a href="#" style="color: #2563EB; text-decoration: underline; font-weight: 500;"
-                onclick="window.location.reload();">
-                Login sekarang
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("Sudah Punya Akun? Login sekarang", use_container_width=True):
+            st.session_state.page = "register"
+            st.rerun()

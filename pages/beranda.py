@@ -6,7 +6,7 @@ def show():
         """
         <h1 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:20px;'>
             PENGELOMPOKAN WILAYAH DI INDONESIA BERDASARKAN<br>
-            ANGKA HARAPAN HIDUP DAN TINGKAT KEMISKINAN
+            ANGKA HARAPAN HIDUP, TINGKAT KEMISKINAN, DAN RATA-RATA LAMA SEKOLAH
         </h1>
         """,
         unsafe_allow_html=True
@@ -15,7 +15,7 @@ def show():
     st.markdown(
         """
         <p style='text-align: center; font-size: 18px; color: gray; padding-bottom:50px; margin-bottom:40px;'>
-            Sebuah Proyek Data Science Menggunakan <b>Intelligent K-Median</b> dan <b>K-Medoids</b>
+            Clustering Wilayah di Indonesia Menggunakan <b>Intelligent K-Median</b> dan <b>K-Medoids</b>
         </p>
         """,
         unsafe_allow_html=True
@@ -50,7 +50,7 @@ def show():
             use_container_width=True,
             help="Mulai proses clustering kabupaten/kota di Indonesia"
         ):
-            st.session_state.page = "clustering"
+            st.session_state.page = "clustering_wilayah"
             st.rerun()  
 
 
