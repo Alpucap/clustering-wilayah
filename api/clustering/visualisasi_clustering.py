@@ -292,7 +292,7 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_fix: dict = 
     for n in nama_data:
         if n not in mapping_fix.values():
             match, score = process.extractOne(n, nama_shp)[:2]
-            if score >= 85:   # threshold cocok
+            if score >= 85:
                 mapping_auto[n] = match
 
     gdf["key_join"] = gdf["key_join"].replace(mapping_auto)
@@ -300,7 +300,7 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_fix: dict = 
 
     #merge
     gdf_merged = gdf.merge(df_hasil, on="key_join", how="inner")
-    gdf_merged["geometry"] = gdf_merged["geometry"].simplify(0.01, preserve_topology=True)
+    gdf_merged["geometry"] = gdf_merged["geometry"].simplify(0.05, preserve_topology=True)
     
     return gdf_merged
 
