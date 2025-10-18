@@ -43,8 +43,11 @@ def page_loader():
         unsafe_allow_html=True
     )
 
-
-st.set_page_config(page_title="Clustering Wilayah di Indonesia", layout="wide")
+st.set_page_config(
+    page_title="Clustering Wilayah",  
+    page_icon="🗺️",
+    layout="wide"
+)
 
 #Setup cookies manager
 secret = st.secrets["COOKIE_PASSWORD"]

@@ -292,18 +292,14 @@ def normalisasi_nama(nama):
 
 #Read shapefile
 def get_shapefile_from_drive(file_id: str):
-    # bikin folder temporary yang otomatis bersih kalau app restart
     temp_dir = tempfile.mkdtemp(prefix="shapefile_")
     temp_zip = os.path.join(temp_dir, "shapefile.zip")
 
-    # download langsung ke temp_dir
     gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_zip, quiet=False)
 
-    # extract ke temp_dir
     with zipfile.ZipFile(temp_zip, "r") as zf:
         zf.extractall(temp_dir)
 
-    # cari file .shp di dalam temp_dir
     for root, dirs, files in os.walk(temp_dir):
         for fn in files:
             if fn.endswith(".shp"):
@@ -313,12 +309,6 @@ def get_shapefile_from_drive(file_id: str):
 
 #Persiapan Shapefile
 def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict = None):
-    """
-    path: path ke .shp atau .gdb
-    df_hasil: DataFrame minimal kolom ["Nama Wilayah", "Cluster", ...indikator]
-    mapping_manual: dict untuk koreksi manual nama
-    return: GeoDataFrame gabungan siap dipetakan
-    """
     if path.endswith(".gdb"):
         gdf = gpd.read_file(path, layer="ADMINISTRASI_AR_KABKOTA")
     else:
@@ -416,7 +406,7 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
             "fillColor": warna_cluster.get(feature["properties"]["Cluster"], "#ffffff"),
             "color": "black",
             "weight": 0.5,
-            "fillOpacity": 0.8,
+            "fillOpacity": 0.3,
         },
         tooltip=folium.GeoJsonTooltip(
             fields=tooltip_fields,
