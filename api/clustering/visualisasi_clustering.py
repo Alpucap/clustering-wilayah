@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 from sklearn.metrics import silhouette_samples, silhouette_score
 from fuzzywuzzy import process
+import gdown, os, zipfile
 
 #Deskripsi Indikator
 indikator_deskripsi = {
@@ -289,6 +290,18 @@ def normalisasi_nama(nama):
         return nama
     return str(nama).upper().strip()
 
+#Read shapefile
+def get_shapefile_from_drive(file_id: str):
+    temp_zip = "shapefile.zip"
+    gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_zip, quiet=False)
+    with zipfile.ZipFile(temp_zip, "r") as zf:
+        zf.extractall("shapefile")
+    # cari .shp di dalam folder "shapefile"
+    for root, dirs, files in os.walk("shapefile"):
+        for fn in files:
+            if fn.endswith(".shp"):
+                return os.path.join(root, fn)
+    raise FileNotFoundError("File .shp tidak ditemukan setelah ekstraksi")
 
 #Persiapan Shapefile
 def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict = None):
@@ -438,3 +451,4 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
 
     m.get_root().html.add_child(folium.Element(legenda_html))
     return m
+

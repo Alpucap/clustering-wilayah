@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_evaluasi, visualisasi_silhouette_full, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, persiapkan_shapefile, tampilkan_peta
+from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_evaluasi, visualisasi_silhouette_full, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
 from streamlit_folium import st_folium
 import io
 import matplotlib.pyplot as plt
@@ -429,7 +429,7 @@ def show():
 
     #Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
-    shp_path = "assets/shapefile/ADMINISTRASI_AR_KABKOTA.shp"
+    shp_path = get_shapefile_from_drive("1V8K5N0hd917R78UbxNNj224upoxEcoKr")
     fig_map_static = None
     try:
         placeholder = st.empty()
