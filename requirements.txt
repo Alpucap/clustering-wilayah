@@ -1,19 +1,38 @@
-# UI
-streamlit==1.38.0
+#Core
+streamlit==1.50.0
+streamlit-cookies-manager==0.2.0
+streamlit-folium==0.25.3
+streamlit-option-menu==0.4.0
 
-# Database
-sqlalchemy==2.0.34
-psycopg2-binary==2.9.9
+#Database
+SQLAlchemy==2.0.43
+alembic==1.16.5
+psycopg2-binary==2.9.10
+bcrypt==5.0.0
 
-# Migration
-alembic==1.13.2
+#Data Processing
+pandas==2.3.2
+numpy==2.3.3
+scikit-learn==1.7.2
+scipy==1.16.2
 
-# Data handling
-pandas==2.2.3
+#Visualization
+matplotlib==3.10.6
+seaborn==0.13.2
+
+#Geospatial
+folium==0.20.0
+geopandas==1.1.1
+shapely==2.1.2
+fiona==1.10.1
+pyproj==3.7.2
+rtree==1.4.1
+
+#Exporting
+reportlab==4.4.4
 openpyxl==3.1.5
 
-# Security
-bcrypt==4.1.2
-
-# ReportLab
-reportlab==4.2.2
+#String Matching
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.27.1
+RapidFuzz==3.14.1

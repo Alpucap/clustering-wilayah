@@ -1,4 +1,4 @@
-import pandas as pd
+import time
 from api.clustering.data_pre_processing import handle_duplicates, check_null, standardize_numeric, check_outlier, normalize_data
 from api.clustering.implementasi_i_k_median import iterasi_i_k_median
 from api.clustering.implementasi_k_medoids import iterasi_k_medoids
@@ -23,10 +23,10 @@ def run_clustering(df, fitur_digunakan, metode_clustering, jumlah_cluster, metri
     #Normalisasi
     df_proc = normalize_data(df_proc, fitur_digunakan)
     
-    
     #Implementasi clustering
     data_matrix = df_proc[fitur_digunakan].values
     
+    start_time = time.time()
     labels, centroids = None, None
 
     if metode_clustering == "Intelligent K-Median":
@@ -40,6 +40,8 @@ def run_clustering(df, fitur_digunakan, metode_clustering, jumlah_cluster, metri
     else:
         raise ValueError(f"Metode clustering '{metode_clustering}' belum diimplementasikan")
         
+    end_time = time.time()
+    waktu_komputasi = end_time - start_time
     
     df_hasil = df_proc.copy()
     df_hasil["Cluster"] = labels
@@ -57,5 +59,6 @@ def run_clustering(df, fitur_digunakan, metode_clustering, jumlah_cluster, metri
         "jumlah_outlier": jumlah_outlier,
         "df_outliers": df_outliers,
         "dbi": dbi,
-        "silhouette": sil
+        "silhouette": sil,
+        "waktu_komputasi": waktu_komputasi
     }

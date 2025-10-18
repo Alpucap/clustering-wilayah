@@ -16,6 +16,9 @@ def render_sidebar(cookies=None):
     
     if st.sidebar.button("Hasil Clustering Wilayah", use_container_width=True):
         set_page("hasil_clustering")
+    
+    if st.sidebar.button("Riwayat Clustering", use_container_width=True): 
+        set_page("riwayat")
 
     if st.sidebar.button("Petunjuk Penggunaan", use_container_width=True):
         set_page("petunjuk_penggunaan_website")

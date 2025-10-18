@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from database import SessionLocal
+from models import ActivityLog
 from api.clustering.load_data import load_dataset, validate_dataset, filter_and_select_data
 from api.clustering.run_clustering import run_clustering
 
@@ -39,7 +41,7 @@ def show():
         """,
         unsafe_allow_html=True
     )
-
+    
     file_dataset = st.file_uploader(
         "Unggah file dataset dalam format Excel (.xlsx)",
         type=["xlsx"],
@@ -64,17 +66,6 @@ def show():
                 st.session_state.page = "petunjuk_penggunaan_website"
                 st.rerun()
     
-    st.markdown(
-        """
-        <p style='text-align: justify; padding-top:8px; padding-bottom:16px;'>
-            Dataset dapat diperoleh melalui <a href="https://www.bps.go.id/id/statistics-table?subject=522">
-                Badan Pusat Statistik (BPS)
-            </a>
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
-
     #Load & Validate dataset
     df_clustering_wilayah = None
     if file_dataset is not None:
@@ -85,8 +76,16 @@ def show():
         except Exception as e:
             st.error(f"Dataset tidak valid: {e}")
             return 
-        
+
     if df_clustering_wilayah is not None:
+        st.markdown(
+            """
+            <p style='padding-top:16px; padding-bottom:4px; font-size: 20px; font-weight: bold;'> 
+            Dataset yang di upload
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
         st.dataframe(df_clustering_wilayah)
         st.write(f"Dataset berisi **{df_clustering_wilayah.shape[0]} baris** dan **{df_clustering_wilayah.shape[1]} kolom**.")
         
@@ -94,7 +93,7 @@ def show():
     #Pilih Metode
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Metode</p>", unsafe_allow_html=True)
     metode_clustering = st.selectbox(
-        "Pilih Metode", 
+        "Pilih Metode Clustering", 
         ["Intelligent K-Median", "K-Medoids"],
         help="Pilih metode clustering yang digunakan."
     )
@@ -125,7 +124,7 @@ def show():
     ]
     
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Fitur</p>", unsafe_allow_html=True)
-    mode_fitur = st.radio("Mode pemilihan fitur:", ["Gunakan Preset", "Pilih Sendiri (Custom)"], horizontal=True)
+    mode_fitur = st.radio("Opsi pemilihan fitur:", ["Gunakan Preset", "Pilih Sendiri (Custom)"], horizontal=True)
 
     if mode_fitur == "Gunakan Preset":
         preset_options = [", ".join(fitur_group) for fitur_group in label_fitur]
@@ -153,7 +152,7 @@ def show():
     if df_clustering_wilayah is not None and "Tahun" in df_clustering_wilayah.columns:
         tahun_list = sorted(df_clustering_wilayah["Tahun"].dropna().astype(int).unique())
     else:
-        tahun_list = ["(upload dataset dulu)"]
+        tahun_list = ["Silakan unggah dataset terlebih dahulu"]
 
     col1, col2 = st.columns(2)
     with col1:
@@ -184,7 +183,7 @@ def show():
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Metrik Jarak</p>", unsafe_allow_html=True)
     metrik_jarak_label = st.selectbox(
         "Pilih Metrik Jarak",
-        ["euclidean", "manhattan"],
+        ["manhattan", "euclidean"],
         help="Metode perhitungan jarak."
     )
 
@@ -205,69 +204,92 @@ def show():
             st.error(f"Gagal memfilter dataset: {e}")
     
     #Ringkasan Pilihan User
-    st.markdown("---")
-    st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Ringkasan Pilihan Analisis</p>", unsafe_allow_html=True)
-    fitur_display_html = "".join([f"<li>{label}</li>" for label in fitur_labels])
-
-    if metode_clustering == "K-Medoids":
-        cluster_html = f"<li>Jumlah Cluster (K): {jumlah_cluster}</li>"
-    else:
-        cluster_html = "" 
-
-    st.markdown(f"""
-    <ul>
-    <li>Metode: {metode_clustering}</li>
-    <li>Fitur:
-        <ul>
-        {fitur_display_html}
-        </ul>
-    </li>
-    <li>Tahun: {tahun_awal} – {tahun_akhir}</li>
-    {cluster_html}
-    <li>Metrik Jarak: {metrik_jarak}</li>
-    </ul>
-    """, unsafe_allow_html=True)
-
-    
     if df_clustering_filtered is not None:
+        st.markdown("---")
+        st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Ringkasan Pilihan Analisis</p>", unsafe_allow_html=True)
+        fitur_display_html = "".join([f"<li>{label}</li>" for label in fitur_labels])
+
+        if metode_clustering == "K-Medoids":
+            cluster_html = f"<li>Jumlah Cluster (K): {jumlah_cluster}</li>"
+        else:
+            cluster_html = "" 
+
+        st.markdown(f"""
+        <ul>
+        <li>Metode: {metode_clustering}</li>
+        <li>Fitur:
+            <ul>
+            {fitur_display_html}
+            </ul>
+        </li>
+        <li>Tahun: {tahun_awal} – {tahun_akhir}</li>
+        {cluster_html}
+        <li>Metrik Jarak: {metrik_jarak}</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        st.markdown(
+            """
+            <p style='padding-top:16px; padding-bottom:4px; font-size: 20px; font-weight: bold;'> 
+            Dataset yang dipilih
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
         st.dataframe(df_clustering_filtered)
         st.write(f"Dataset berisi **{df_clustering_filtered.shape[0]} baris** dan **{df_clustering_filtered.shape[1]} kolom**.")
-        
-    st.info(
-        "Jika pilihan sudah sesuai, silakan klik tombol **Jalankan Clustering** di bawah "
-        "untuk memproses dataset dan menampilkan hasil analisis."
-    )
+        st.info(
+            "Jika pilihan sudah sesuai, silakan klik tombol **Jalankan Clustering** di bawah "
+            "untuk memproses dataset dan menampilkan hasil analisis."
+        )
     
-    #Jalankan Clustering
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Jalankan Clustering", use_container_width=True):
-            if df_clustering_filtered is None:
-                st.error("Dataset belum siap. Pastikan file valid dan tahun/fitur sudah dipilih.")
-            else:
-                result = run_clustering(df_clustering_filtered, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak)
-                
-                df_with_cluster = df_clustering_filtered.copy()
-                df_with_cluster["Cluster"] = result["df_hasil"]["Cluster"].values
-                
-                st.session_state.page = "hasil_clustering"
-                st.session_state.user_input = {
-                    "dataset": result["df_processed"],    
-                    "df_hasil": df_with_cluster,
-                    "labels": result["labels"],         
-                    "centroids": result["centroids"],    
-                    "fitur_digunakan": fitur_digunakan,
-                    "metode_clustering": metode_clustering,
-                    "tahun_awal": tahun_awal,
-                    "tahun_akhir": tahun_akhir,
-                    "jumlah_k": jumlah_cluster,
-                    "metrik_jarak": metrik_jarak,
-                    "null_summary": result["null_summary"],
-                    "jumlah_outlier": result["jumlah_outlier"],
-                    "df_outliers": result["df_outliers"],
-                    "dbi": result["dbi"],        
-                    "silhouette": result["silhouette"]
-                }
-                st.session_state["loading"] = True
-                st.rerun()
+        #Jalankan Clustering
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("Jalankan Clustering", use_container_width=True):
+                if df_clustering_filtered is None:
+                    st.error("Dataset belum siap. Pastikan file valid dan tahun/fitur sudah dipilih.")
+                else:
+                    result = run_clustering(df_clustering_filtered, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak)
+                    
+                    df_with_cluster = df_clustering_filtered.copy()
+                    df_with_cluster["Cluster"] = result["df_hasil"]["Cluster"].values
+                    
+                    if "user_id" in st.session_state:
+                        with SessionLocal() as db:
+                            log = ActivityLog(
+                                user_id=int(st.session_state["user_id"]),
+                                metode_clustering=metode_clustering,
+                                fitur_digunakan=fitur_labels,
+                                tahun_awal=int(tahun_awal),
+                                tahun_akhir=int(tahun_akhir),
+                                jumlah_cluster=int(jumlah_cluster) if jumlah_cluster is not None else None,
+                                metrik_jarak=metrik_jarak,
+                                silhouette=str(result["silhouette"]),
+                                dbi=str(result["dbi"]),
+                                waktu_komputasi=str(result["waktu_komputasi"])
+                            )
+                            db.add(log)
+                            db.commit()
+                    
+                    st.session_state.page = "hasil_clustering"
+                    st.session_state.user_input = {
+                        "dataset": result["df_processed"],    
+                        "df_hasil": df_with_cluster,
+                        "labels": result["labels"],         
+                        "centroids": result["centroids"],    
+                        "fitur_digunakan": fitur_digunakan,
+                        "metode_clustering": metode_clustering,
+                        "tahun_awal": tahun_awal,
+                        "tahun_akhir": tahun_akhir,
+                        "jumlah_k": jumlah_cluster,
+                        "metrik_jarak": metrik_jarak,
+                        "null_summary": result["null_summary"],
+                        "jumlah_outlier": result["jumlah_outlier"],
+                        "df_outliers": result["df_outliers"],
+                        "dbi": result["dbi"],        
+                        "silhouette": result["silhouette"],
+                        "waktu_komputasi": result["waktu_komputasi"]
+                    }
+                    st.session_state["loading"] = True
+                    st.rerun()
 

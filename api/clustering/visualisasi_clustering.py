@@ -1,18 +1,27 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
 import geopandas as gpd
 import folium
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 from sklearn.metrics import silhouette_samples, silhouette_score
-import numpy as np
 from fuzzywuzzy import process
 
-#Label scheme
-label_schemes = {
+#Deskripsi Indikator
+indikator_deskripsi = {
+    "AHH_L": "Angka Harapan Hidup Laki-laki",
+    "AHH_P": "Angka Harapan Hidup Perempuan",
+    "RLS":  "Rata-Rata Lama Sekolah (tahun)",
+    "P0":   "Persentase Penduduk Miskin",
+    "P1":   "Indeks Kedalaman Kemiskinan",
+    "P2":   "Indeks Keparahan Kemiskinan"
+}
+
+#Skema Label Cluster & Deskripsi
+skema_label = {
     2:  ["Sejahtera", "Tertinggal"],
     3:  ["Sejahtera", "Menengah", "Tertinggal"],
     4:  ["Sejahtera", "Menengah Atas", "Menengah Bawah", "Tertinggal"],
@@ -25,7 +34,7 @@ label_schemes = {
     11: ["Sejahtera Tinggi", "Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Cukup Rentan", "Rentan", "Sangat Rentan", "Tertinggal", "Tertinggal Berat"],
 }
 
-label_desc = {
+deskripsi_label = {
     "Sejahtera": "AHH & RLS tinggi; P0/P1/P2 rendah.",
     "Sejahtera Tinggi": "Indikator positif sangat tinggi; kemiskinan sangat rendah.",
     "Cukup Sejahtera": "Mendekati sejahtera; kemiskinan rendah–sedang.",
@@ -39,84 +48,97 @@ label_desc = {
     "Tertinggal Berat": "Kondisi sosial-ekonomi paling rendah di rentang cluster."
 }
 
-#Method untuk mengambil label scheme
-def get_label_scheme(k: int):
-    return label_schemes.get(k, [f"Cluster {i+1}" for i in range(k)])
+def ambil_skema_label(jumlah_k: int):
+    """Ambil daftar label cluster berdasarkan jumlah K."""
+    return skema_label.get(jumlah_k, [f"Cluster {i+1}" for i in range(jumlah_k)])
 
-#Method untuk analisis cluster
-def analisis_cluster(df, fitur_dipakai, algo=""):
-    #Bagi fitur ke positif & negatif
-    fitur_pos = [c for c in ["AHH_L","AHH_P","RLS"] if c in fitur_dipakai]
-    fitur_neg = [c for c in ["P0","P1","P2"] if c in fitur_dipakai]
-    fitur_all = fitur_pos + fitur_neg
 
-    if not fitur_all:
+#Analisis Cluster
+def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
+    """
+    df: DataFrame yang minimal punya kolom:
+        - 'Cluster' (int)
+        - indikator sesuai fitur_digunakan (mis: AHH_L, AHH_P, RLS, P0, P1, P2)
+    fitur_digunakan: list nama kolom indikator dipakai
+    algoritma: nama algoritma (untuk logging saja)
+    """
+    fitur_positif = [c for c in ["AHH_L", "AHH_P", "RLS"] if c in fitur_digunakan]
+    fitur_negatif = [c for c in ["P0", "P1", "P2"] if c in fitur_digunakan]
+    fitur_semua  = fitur_positif + fitur_negatif
+
+    if not fitur_semua:
         raise ValueError("Tidak ada fitur yang valid untuk analisis cluster.")
 
-    print(f"Analisis {algo} dengan fitur: {fitur_all}")
+    print(f"[Analisis] Algoritma: {algoritma} | Fitur: {fitur_semua}")
 
-    #Jumlah anggota cluster
+    #Jumlah anggota
     jumlah = df["Cluster"].value_counts().sort_index()
-    print("Jumlah anggota per cluster:")
-    print(jumlah, "\n")
+    print("Jumlah anggota per cluster:\n", jumlah, "\n")
 
-    #Rata-rata indikator per cluster (hanya fitur terpilih)
-    mean_c = df.groupby("Cluster")[fitur_all].mean().round(3)
-    print("Rata-rata indikator per cluster:")
-    print(mean_c, "\n")
+    #Rata-rata indikator per cluster
+    rata_c = df.groupby("Cluster")[fitur_semua].mean().round(3)
+    print("Rata-rata indikator per cluster:\n", rata_c, "\n")
 
-    #Skor gabungan  (rata-rata positif - rata-rata negatif)
-    if fitur_pos and fitur_neg:
-        score = (mean_c[fitur_pos].mean(axis=1) - mean_c[fitur_neg].mean(axis=1))
-    elif fitur_pos:  # hanya fitur positif
-        score = mean_c[fitur_pos].mean(axis=1)
-    else:  # hanya fitur negatif
-        score = -mean_c[fitur_neg].mean(axis=1)
+    #Skor gabungan
+    if fitur_positif and fitur_negatif:
+        skor = (rata_c[fitur_positif].mean(axis=1) - rata_c[fitur_negatif].mean(axis=1))
+    elif fitur_positif:
+        skor = rata_c[fitur_positif].mean(axis=1)
+    else:
+        skor = -rata_c[fitur_negatif].mean(axis=1)
 
-    #Ranking cluster
-    rank = score.sort_values(ascending=False)
-    order = rank.index.tolist()
-    K = len(rank)
+    ranking = skor.sort_values(ascending=False)
+    urutan  = ranking.index.tolist()
+    k       = len(ranking)
 
-    #Label cluster sesuai jumlah K
-    scheme = get_label_scheme(K)
-    labels = {order[i]: scheme[i] for i in range(K)}
+    skema          = ambil_skema_label(k)
+    label_cluster  = {urutan[i]: skema[i] for i in range(k)}
+    print("Label cluster:", label_cluster, "\n")
 
-    print("Label cluster:", labels, "\n")
+    return rata_c, label_cluster, skor
 
-    return mean_c, labels, score
 
-#Method untuk visualisasi ringkasan cluster
-def ringkasan_cluster(df, judul="Ringkasan Cluster"):
+#Ringkasan Cluster
+def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
     s = df["Cluster"].astype("Int64")
-    counts = s.value_counts().sort_index()
-    K = int(counts.index.max()) + 1
-    counts = counts.reindex(range(K), fill_value=0)
-    total = counts.sum()
+    hitung = s.value_counts().sort_index()
+    k = int(hitung.index.max()) + 1
+    hitung = hitung.reindex(range(k), fill_value=0)
+    total = hitung.sum()
 
-    summary = pd.DataFrame({
-        "Cluster": counts.index,
-        "Jumlah": counts.values,
-        "Persen": (counts.values / total * 100).round(1)
+    ringkasan = pd.DataFrame({
+        "Cluster": hitung.index,
+        "Jumlah": hitung.values,
+        "Persen": (hitung.values / total * 100).round(1)
     })
 
-    fig, ax = plt.subplots(figsize=(4,3))
-    colors = plt.cm.Blues(np.linspace(0.4, 0.8, K))
-    bars = ax.bar(summary["Cluster"].astype(str), summary["Jumlah"], color=colors)
-    for bar, v, p in zip(bars, summary["Jumlah"], summary["Persen"]):
-        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height(),
-                f"{v} ({p}%)", ha="center", va="bottom", fontsize=8)
-    ax.set_title(f"{judul} (K={K})", fontsize=10)
+    fig, ax = plt.subplots(figsize=(4, 3))
+    warna = plt.cm.Blues(np.linspace(0.4, 0.8, k))
+    bars = ax.bar(ringkasan["Cluster"].astype(str), ringkasan["Jumlah"], color=warna)
+
+    ax.margins(y=0.1)
+    for bar, v, p in zip(bars, ringkasan["Jumlah"], ringkasan["Persen"]):
+        ax.text(
+            bar.get_x() + bar.get_width()/2, 
+            bar.get_height() + (v * 0.02),
+            f"{v} ({p}%)", 
+            ha="center", va="bottom", fontsize=8
+        )
+
+    ax.set_title(f"{judul} (K={k})", fontsize=10, pad=15)
     ax.set_xlabel("Cluster", fontsize=9)
     ax.set_ylabel("Jumlah Wilayah", fontsize=9)
+
     fig.tight_layout()
+    fig.subplots_adjust(top=0.85)
 
-    return summary, fig
+
+    return ringkasan, fig
 
 
-#Method untuk visualisasi evaluasi
-def visualisasi_evaluasi(df_eval):
-    fig, axes = plt.subplots(1, 3, figsize=(15,4))
+#Visualisasi Evaluasi
+def visualisasi_evaluasi(df_eval: pd.DataFrame):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for algo, subset in df_eval.groupby("Algoritma"):
         axes[0].plot(subset["K"], subset["Silhouette"], marker="o", label=algo)
         axes[1].plot(subset["K"], subset["DBI"], marker="o", label=algo)
@@ -125,51 +147,60 @@ def visualisasi_evaluasi(df_eval):
     axes[0].set_title("Koefisien Silhouette vs K")
     axes[1].set_title("Indeks DBI vs K")
     axes[2].set_title("Waktu Eksekusi vs K")
-    for ax in axes: ax.legend(); ax.set_xlabel("Jumlah Cluster (K)")
+    for ax in axes:
+        ax.legend()
+        ax.set_xlabel("Jumlah Cluster (K)")
     plt.tight_layout()
     return fig
 
-#Method untuk melakukan visualisasi silhouette secara keseluruhan
-def visualisasi_silhouette_full(data_matriks, labels, algo=""):
-    from sklearn.metrics import silhouette_samples, silhouette_score
-    import matplotlib.pyplot as plt
-    import matplotlib.cm as cm
-    import numpy as np
 
-    sample_silhouette_values = silhouette_samples(data_matriks, labels)
-    silhouette_avg = silhouette_score(data_matriks, labels)
+#Visualisasi Silhouette
+def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndarray, algo: str = ""):
+    nilai_sample = silhouette_samples(data_matriks, label_cluster)
+    nilai_rata   = silhouette_score(data_matriks, label_cluster)
 
-    n_clusters = len(np.unique(labels))
-    y_lower = 5
+    n_clusters = len(np.unique(label_cluster))
+    y_bawah = 5
     
     fig, ax1 = plt.subplots(figsize=(6, 5))
 
     for i in range(n_clusters):
-        ith_cluster_silhouette_values = sample_silhouette_values[labels == i]
-        ith_cluster_silhouette_values.sort()
+        nilai_i = nilai_sample[label_cluster == i]
+        nilai_i.sort()
 
-        size_cluster_i = ith_cluster_silhouette_values.shape[0]
-        y_upper = y_lower + size_cluster_i
+        ukuran_i = nilai_i.shape[0]
+        y_atas = y_bawah + ukuran_i
 
-        color = cm.nipy_spectral(float(i) / n_clusters)
+        warna = cm.nipy_spectral(float(i) / n_clusters)
         ax1.fill_betweenx(
-            np.arange(y_lower, y_upper),
+            np.arange(y_bawah, y_atas),
             0,
-            ith_cluster_silhouette_values,
-            facecolor=color,
-            edgecolor=color,
+            nilai_i,
+            facecolor=warna,
+            edgecolor=warna,
             alpha=0.7
         )
 
-        ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i), fontsize=9)
-        y_lower = y_upper + 5
+        ax1.text(-0.05, y_bawah + 0.5 * ukuran_i, str(i), fontsize=9)
+        y_bawah = y_atas + 5
 
-    ax1.set_title(f"Plot Silhouette untuk berbagai Cluster ({algo})", fontsize=11, pad=10) 
+    ax1.set_title(f"Plot Silhouette ({algo})", fontsize=11, pad=10) 
     ax1.set_xlabel("Nilai Silhouette Coefficient", fontsize=10)
-    ax1.set_ylabel("Label Cluster", fontsize=10)
+    ax1.set_ylabel("Cluster", fontsize=10)
 
-    #Garis rata-rata
-    ax1.axvline(x=silhouette_avg, color="red", linestyle="--", linewidth=1.5)
+    #Garis rata-rata silhouette
+    ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
+    ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
+
+    ax1.text(
+        nilai_rata, 
+        -5,
+        f"{nilai_rata:.2f}", 
+        color="red", 
+        fontsize=9, 
+        ha="left", 
+        va="bottom"
+    )
 
     ax1.set_yticks([])
     ax1.set_xticks(np.linspace(-0.1, 1.0, 6))
@@ -178,70 +209,95 @@ def visualisasi_silhouette_full(data_matriks, labels, algo=""):
     plt.tight_layout(pad=1)
     return fig
 
-#Method untuk visualisasi sebaran cluster
-def visualisasi_sebaran_cluster_per_indikator(df, fitur_dipakai, algo=""):
-    cols = [c for c in fitur_dipakai if c in df.columns]
 
-    if not cols:
+#Visualisasi Sebaran (pairplot)
+def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan, algo: str = ""):
+    kolom = [c for c in fitur_digunakan if c in df.columns]
+    if not kolom:
         raise ValueError("Tidak ada fitur valid untuk divisualisasikan.")
 
+    # 🔹 Ganti header ke deskripsi publik
+    df_plot = df.rename(columns={k: indikator_deskripsi.get(k, k) for k in kolom})
+    kolom_jelas = [indikator_deskripsi.get(k, k) for k in kolom]
+
     g = sns.pairplot(
-        df, vars=cols, hue="Cluster", diag_kind="kde",
-        plot_kws={"alpha":0.7, "s":30}
+        df_plot, vars=kolom_jelas, hue="Cluster", diag_kind="kde",
+        plot_kws={"alpha": 0.7, "s": 30}
     )
-    g.fig.suptitle(f"Scatter Matrix per Cluster ({algo})", y=1.02)
+    g.figure.suptitle(f"Scatter Matrix per Cluster ({algo})", y=1.02)
     return g
 
-#Method untuk visualisasi ringkasan cluster
-def boxgrid_per_cluster(df, vars_, title_prefix):
+
+
+#Boxplot distribusi indikator per cluster
+def boxgrid_per_cluster(df: pd.DataFrame, variabel, judul: str):
     df = df.copy()
     df["Cluster"] = df["Cluster"].astype(int)
 
-    n_vars = len(vars_)
+    mapping = {k: indikator_deskripsi.get(k, k) for k in variabel}
+    df_plot = df.rename(columns=mapping)
+    variabel_jelas = [mapping.get(v, v) for v in variabel]
+
+    n_vars = len(variabel_jelas)
     n_cols = 3
     n_rows = (n_vars + n_cols - 1) // n_cols
 
     fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
     axes = axes.flatten()
 
-    for i, var in enumerate(vars_):
-        if var not in df.columns:
+    for i, var in enumerate(variabel_jelas):
+        if var not in df_plot.columns:
             continue
         sns.boxplot(
-            data=df, x="Cluster", y=var, hue="Cluster",
+            data=df_plot, x="Cluster", y=var, hue="Cluster",
             palette="Set2", legend=False, ax=axes[i]
         )
         axes[i].set_title(var)
 
-    #hapus axes kosong kalau jumlah var < n_rows*n_cols
-    for j in range(len(vars_), len(axes)):
+    for j in range(len(variabel_jelas), len(axes)):
         fig.delaxes(axes[j])
 
-    fig.suptitle(title_prefix, y=1.02, fontsize=12)
+    fig.suptitle(judul, y=1.02, fontsize=12)
     plt.tight_layout()
     return fig
 
-#Method untuk melihat korelasi antar variabel
-def heatmap_correlation(df, vars_, title="Korelasi Antar Variabel"):
-    corr = df[vars_].corr(method="pearson")
-    fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(corr, annot=True, cmap="coolwarm", center=0, fmt=".2f",
-                xticklabels=vars_, yticklabels=vars_, ax=ax, 
-                annot_kws={"fontsize": 9}, cbar_kws={"shrink": 0.8})
-    ax.set_title(title, fontsize=12, pad=10)
-    ax.tick_params(axis='both', labelsize=9)
-    plt.tight_layout()
+
+
+#Heatmap korelasi indikator
+def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar Variabel"):
+    corr = df[variabel].corr(method="pearson")
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    sns.heatmap(
+        corr, annot=True, cmap="coolwarm", center=0, fmt=".2f",
+        xticklabels=[indikator_deskripsi.get(v, v) for v in variabel],
+        yticklabels=[indikator_deskripsi.get(v, v) for v in variabel],
+        ax=ax, annot_kws={"fontsize": 8}, cbar_kws={"shrink": 0.7}
+    )
+
+    ax.set_title(judul, fontsize=12, pad=20)
+    plt.xticks(rotation=30, ha="right", fontsize=8)
+    plt.yticks(fontsize=8)
+    plt.tight_layout(pad=2)
+    
     return fig
 
-#Pemetaan
-#Method untuk normalisasi nama
-def normalize_name(name):
-    if pd.isna(name):
-        return name
-    return name.upper().strip()
 
-#Method untuk persiapan shapefile
-def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_fix: dict = None):
+#Normalisasi Nama Wilayah
+def normalisasi_nama(nama):
+    if pd.isna(nama):
+        return nama
+    return str(nama).upper().strip()
+
+
+#Persiapan Shapefile
+def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict = None):
+    """
+    path: path ke .shp atau .gdb
+    df_hasil: DataFrame minimal kolom ["Nama Wilayah", "Cluster", ...indikator]
+    mapping_manual: dict untuk koreksi manual nama
+    return: GeoDataFrame gabungan siap dipetakan
+    """
     if path.endswith(".gdb"):
         gdf = gpd.read_file(path, layer="ADMINISTRASI_AR_KABKOTA")
     else:
@@ -249,17 +305,17 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_fix: dict = 
 
     gdf = gdf.to_crs(4326)
 
-    #Kolom nama wilayah
-    nama_col = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
+    #Tentukan kolom nama wilayah di shapefile
+    kolom_nama = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
 
-    #Normalisasi
-    gdf["key_join"] = gdf[nama_col].apply(normalize_name)
-    df_hasil = df_hasil.copy()
-    df_hasil["key_join"] = df_hasil["Nama Wilayah"].apply(normalize_name)
+    #Buat key join (upper & strip)
+    gdf["key_join"] = gdf[kolom_nama].apply(normalisasi_nama)
+    df_h = df_hasil.copy()
+    df_h["key_join"] = df_h["Nama Wilayah"].apply(normalisasi_nama)
 
-    #Mapping manual
-    if mapping_fix is None:
-        mapping_fix = {
+    #Mapping manual default (bisa diperluas)
+    if mapping_manual is None:
+        mapping_manual = {
             "KOTA ADM. JAKARTA SELATAN": "KOTA JAKARTA SELATAN",
             "KOTA ADM. JAKARTA TIMUR": "KOTA JAKARTA TIMUR",
             "KOTA ADM. JAKARTA PUSAT": "KOTA JAKARTA PUSAT",
@@ -281,57 +337,62 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_fix: dict = 
             "TOBA": "TOBA SAMOSIR",
             "MINAHASA SELATAN/BOLAANG MONGONDOW TIMUR": "MINAHASA SELATAN"
         }
-    gdf["key_join"] = gdf["key_join"].replace(mapping_fix)
-    df_hasil["key_join"] = df_hasil["key_join"].replace(mapping_fix)
 
-    #Menggunakan Fuzzy Mapping
+    #Terapkan mapping manual ke kedua sisi
+    gdf["key_join"] = gdf["key_join"].replace(mapping_manual)
+    df_h["key_join"] = df_h["key_join"].replace(mapping_manual)
+
+    #Fuzzy mapping (opsional, threshold 85)
     nama_shp = gdf["key_join"].unique()
-    nama_data = df_hasil["key_join"].unique()
+    nama_data = df_h["key_join"].unique()
 
-    mapping_auto = {}
+    mapping_otomatis = {}
     for n in nama_data:
-        if n not in mapping_fix.values():
-            match, score = process.extractOne(n, nama_shp)[:2]
-            if score >= 85:
-                mapping_auto[n] = match
+        if n not in mapping_manual.values():
+            match, skor = process.extractOne(n, nama_shp)[:2]
+            if skor >= 85:
+                mapping_otomatis[n] = match
 
-    gdf["key_join"] = gdf["key_join"].replace(mapping_auto)
-    df_hasil["key_join"] = df_hasil["key_join"].replace(mapping_auto)
+    gdf["key_join"] = gdf["key_join"].replace(mapping_otomatis)
+    df_h["key_join"] = df_h["key_join"].replace(mapping_otomatis)
 
-    #merge
-    gdf_merged = gdf.merge(df_hasil, on="key_join", how="inner")
-    gdf_merged["geometry"] = gdf_merged["geometry"].simplify(0.05, preserve_topology=True)
-    
-    return gdf_merged
+    gdf_gabung = gdf.merge(df_h, on="key_join", how="inner")
 
-#Method untuk tampilkan peta
-def tampilkan_peta(gdf, score, labels, algo_name="iK-Median", fitur_dipakai=None):
-    # Warna cluster
-    norm = mcolors.Normalize(vmin=score.min(), vmax=score.max())
+    gdf_gabung["geometry"] = gdf_gabung["geometry"].simplify(0.05, preserve_topology=True)
+
+    return gdf_gabung
+
+
+#Peta Folium
+def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, nama_algo: str = "iK-Median", fitur_digunakan=None):
+    if fitur_digunakan is None:
+        fitur_digunakan = []
+
+    # Normalisasi skor → warna (hijau = lebih baik, merah = lebih rentan)
+    norm = mcolors.Normalize(vmin=float(skor.min()), vmax=float(skor.max()))
     cmap = cm.get_cmap("RdYlGn")
-    cluster_colors = {
-        cluster: mcolors.to_hex(cmap(norm(s)))
-        for cluster, s in score.items()
+    warna_cluster = {
+        c: mcolors.to_hex(cmap(norm(float(s))))
+        for c, s in skor.items()
     }
-    
-    if fitur_dipakai is None:
-        fitur_dipakai = []
 
-    tooltip_fields = ["NAMOBJ"] + [f for f in fitur_dipakai if f in gdf.columns] + ["Cluster"]
-    tooltip_aliases = ["Wilayah"] + [f for f in fitur_dipakai if f in gdf.columns] + ["Cluster"]
+    # Field tooltip: Wilayah + indikator yang ada + Cluster
+    nama_kolom_namobj = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
+    tooltip_fields  = [nama_kolom_namobj] + [f for f in fitur_digunakan if f in gdf.columns] + ["Cluster"]
+    tooltip_aliases = ["Wilayah"] + [indikator_deskripsi.get(f, f) for f in fitur_digunakan] + ["Cluster"]
 
+    #Peta dasar
     m = folium.Map(
         location=[-2.5, 118],
         zoom_start=4,
         tiles="OpenStreetMap",
         prefer_canvas=True
     )
-    
 
     folium.GeoJson(
         gdf.to_json(),
         style_function=lambda feature: {
-            "fillColor": cluster_colors.get(feature["properties"]["Cluster"], "#ffffff"),
+            "fillColor": warna_cluster.get(feature["properties"]["Cluster"], "#ffffff"),
             "color": "black",
             "weight": 0.5,
             "fillOpacity": 0.8,
@@ -344,30 +405,36 @@ def tampilkan_peta(gdf, score, labels, algo_name="iK-Median", fitur_dipakai=None
     ).add_to(m)
 
     #Legend
-    legend_items = "".join([
-        f'<i style="background:{cluster_colors[c]}; width:15px; height:15px; '
-        f'float:left; margin-right:8px; opacity:0.8;"></i>'
-        f'Cluster {c}: {labels.get(c, "Tidak Diketahui")}<br>'
-        for c in sorted(cluster_colors.keys())
+    legenda_item = "".join([
+        f'<div style="display:flex;align-items:center;margin-bottom:4px;">'
+        f'<span style="display:inline-block;width:15px;height:15px;'
+        f'background:{warna_cluster[c]};margin-right:8px;border:1px solid #777;"></span>'
+        f'<span>Cluster {c}: {label_cluster.get(c, "Tidak Diketahui")}</span>'
+        f'</div>'
+        for c in sorted(warna_cluster.keys())
     ])
 
-    legend_html = f"""
+    legenda_html = f"""
     <div style="
         position: absolute;
         top: 30px; right: 30px;
-        width: 280px; height: auto;
+        width: 300px; height: auto;
         background-color: white;
-        border:2px solid grey;
-        z-index:9999;
-        font-size:13px;
-        padding: 10px;
-        color: black;
+        border: 1px solid #999;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-size: 13px;
+        padding: 10px 12px;
+        color: #111;
+        line-height: 1.3;
     ">
-    <b>Keterangan Cluster {algo_name}</b><br>
-    {legend_items}
+      <div style="font-weight: 600; margin-bottom: 6px;">
+        Keterangan Cluster — {nama_algo}
+      </div>
+      {legenda_item}
     </div>
     """
 
-    m.get_root().html.add_child(folium.Element(legend_html))
-
+    m.get_root().html.add_child(folium.Element(legenda_html))
     return m
