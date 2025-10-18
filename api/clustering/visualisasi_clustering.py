@@ -218,7 +218,6 @@ def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan,
     if not kolom:
         raise ValueError("Tidak ada fitur valid untuk divisualisasikan.")
 
-    # 🔹 Ganti header ke deskripsi publik
     df_plot = df.rename(columns={k: indikator_deskripsi.get(k, k) for k in kolom})
     kolom_jelas = [indikator_deskripsi.get(k, k) for k in kolom]
 
