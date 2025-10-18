@@ -10,6 +10,7 @@ import matplotlib.colors as mcolors
 from sklearn.metrics import silhouette_samples, silhouette_score
 from fuzzywuzzy import process
 import gdown, os, zipfile
+import tempfile
 
 #Deskripsi Indikator
 indikator_deskripsi = {
@@ -292,15 +293,23 @@ def normalisasi_nama(nama):
 
 #Read shapefile
 def get_shapefile_from_drive(file_id: str):
-    temp_zip = "shapefile.zip"
+    # bikin folder temporary yang otomatis bersih kalau app restart
+    temp_dir = tempfile.mkdtemp(prefix="shapefile_")
+    temp_zip = os.path.join(temp_dir, "shapefile.zip")
+
+    # download langsung ke temp_dir
     gdown.download(f"https://drive.google.com/uc?id={file_id}", temp_zip, quiet=False)
+
+    # extract ke temp_dir
     with zipfile.ZipFile(temp_zip, "r") as zf:
-        zf.extractall("shapefile")
-    # cari .shp di dalam folder "shapefile"
-    for root, dirs, files in os.walk("shapefile"):
+        zf.extractall(temp_dir)
+
+    # cari file .shp di dalam temp_dir
+    for root, dirs, files in os.walk(temp_dir):
         for fn in files:
             if fn.endswith(".shp"):
                 return os.path.join(root, fn)
+
     raise FileNotFoundError("File .shp tidak ditemukan setelah ekstraksi")
 
 #Persiapan Shapefile
