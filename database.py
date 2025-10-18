@@ -1,11 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
+import streamlit as st
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg2://neondb_owner:npg_tZOyNdj20Crq@ep-rough-mode-a1dhgduq-pooler.ap-southeast-1.aws.neon.tech/clustering_wilayah?sslmode=require"
-)
+# Ambil URL dari secrets.toml
+DATABASE_URL = st.secrets["DB_URL"]
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
