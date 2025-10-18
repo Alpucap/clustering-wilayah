@@ -29,14 +29,12 @@ def show(cookies=None):
         st.info("Belum ada riwayat aktivitas.")
         return
 
-    # Konversi ke DataFrame
     data = []
     for log in logs:
         fitur = log.fitur_digunakan
         if isinstance(fitur, str):
             fitur = json.loads(fitur)
 
-        # Helper function untuk format angka
         def format_number(value):
             if value is None:
                 return "-"
@@ -59,10 +57,8 @@ def show(cookies=None):
 
     df = pd.DataFrame(data)
 
-    # Tampilkan tabel di UI
     st.dataframe(df, use_container_width=True)
 
-    # Tombol download di bawah tabel
     st.markdown("#### Download Riwayat")
     col1, col2 = st.columns(2)
 
@@ -80,7 +76,7 @@ def show(cookies=None):
     with col2:
 
         pdf_buffer = BytesIO()
-        # Tambahkan margin yang lebih besar
+
         doc = SimpleDocTemplate(
             pdf_buffer, 
             pagesize=landscape(A4),
@@ -91,8 +87,7 @@ def show(cookies=None):
         )
 
         styles = getSampleStyleSheet()
-        
-        # Style untuk fitur (wrap text)
+
         fitur_style = ParagraphStyle(
             'FiturStyle',
             parent=styles['Normal'],
@@ -100,8 +95,7 @@ def show(cookies=None):
             leading=9,
             wordWrap='LTR'
         )
-        
-        # Style untuk cell biasa
+
         normal_style = ParagraphStyle(
             'NormalStyle',
             parent=styles['Normal'],
@@ -109,10 +103,8 @@ def show(cookies=None):
             leading=9
         )
 
-        # Header
         table_data = [list(df.columns)]
-        
-        # Rows - wrap semua cell dalam Paragraph untuk kontrol lebih baik
+
         for row in df.values.tolist():
             new_row = []
             for i, val in enumerate(row):
@@ -123,31 +115,23 @@ def show(cookies=None):
                     new_row.append(Paragraph(val_str, normal_style))
             table_data.append(new_row)
 
-        # Set lebar kolom yang lebih proporsional
-        # Total width landscape A4 = ~27cm - margins (2cm) = ~25cm = ~710 points
+
         col_widths = [85, 65, 180, 65, 40, 70, 60, 50, 95]
 
         table = Table(table_data, repeatRows=1, colWidths=col_widths)
         style = TableStyle([
-            # Header styling
             ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#4472C4")),
             ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
             ("ALIGN", (0,0), (-1,-1), "CENTER"),
             ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
             ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
             ("FONTSIZE", (0,0), (-1,0), 8),
-            
-            # Cell padding
             ("LEFTPADDING", (0,0), (-1,-1), 4),
             ("RIGHTPADDING", (0,0), (-1,-1), 4),
             ("TOPPADDING", (0,0), (-1,-1), 6),
             ("BOTTOMPADDING", (0,0), (-1,-1), 6),
-            
-            # Grid
             ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
             ("LINEBELOW", (0,0), (-1,0), 1.5, colors.HexColor("#4472C4")),
-            
-            # Alternating row colors
             ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#F2F2F2")]),
         ])
         table.setStyle(style)
@@ -155,7 +139,7 @@ def show(cookies=None):
         doc.build([table])
 
         st.download_button(
-            label="Download PDF (Landscape)",
+            label="Download PDF",
             data=pdf_buffer.getvalue(),
             file_name="riwayat_aktivitas.pdf",
             mime="application/pdf",

@@ -19,19 +19,15 @@ def show():
     #Description
     st.markdown(
         """
-        <p style='text-align: justify; padding-top:30px; padding-bottom:20px;'>
-            Setelah memahami indikator yang digunakan dalam pengelompokan wilayah—yaitu 
-            <b>Angka Harapan Hidup (AHH)</b> laki-laki & perempuan, 
-            <b>Persentase Penduduk Miskin (P0)</b>, 
-            <b>Rata-rata Lama Sekolah (RLS)</b>, 
-            <b>Indeks Kedalaman Kemiskinan (P1)</b>, serta 
-            <b>Indeks Keparahan Kemiskinan (P2)</b>—proses clustering dapat langsung dilakukan 
-            menggunakan data yang tersedia.
+        <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
+            Halaman ini digunakan untuk melakukan <b>clustering wilayah di Indonesia</b> berdasarkan 
+            indikator yang tersedia pada dataset. Untuk memulai, silakan unggah dataset sesuai format 
+            yang disediakan, kemudian pilih metode clustering, indikator yang ingin digunakan, serta rentang tahun analisis.
         </p>
         """,
         unsafe_allow_html=True
     )
-    
+
     #Upload File
     st.markdown(
         """
@@ -60,16 +56,36 @@ def show():
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True
                 )
+                
+        st.markdown(
+            """
+            <div style="margin-top:8px;">
 
-        with col2:
-            with open("assets/files/DummyWord.docx", "rb") as file_petunjuk_penggunaan:
-                st.download_button(
-                    label="Panduan Pengisian Template Dataset",
-                    data=file_petunjuk_penggunaan,
-                    file_name="Panduan_Pengisian_Dataset.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+            **Petunjuk Pengisian Template Dataset**  
+
+            Template dataset diberikan dalam format Excel (`.xlsx`) dengan kolom sebagai berikut:  
+
+            - **Nama Wilayah** → Nama kabupaten/kota di Indonesia (gunakan format *Pascal Case*, contoh: `Kota Jakarta Barat`).  
+            - **Tahun** → Tahun data (misalnya `2022`, `2023`).  
+            - **AHH_L** → Angka Harapan Hidup Laki-laki (rata-rata usia harapan hidup penduduk laki-laki).  
+            - **AHH_P** → Angka Harapan Hidup Perempuan (rata-rata usia harapan hidup penduduk perempuan).  
+            - **P0** → Persentase Penduduk Miskin (proporsi penduduk di bawah garis kemiskinan).  
+            - **P1** → Indeks Kedalaman Kemiskinan (mengukur seberapa jauh rata-rata penduduk miskin dari garis kemiskinan).  
+            - **P2** → Indeks Keparahan Kemiskinan (menggambarkan ketimpangan di antara penduduk miskin).  
+            - **RLS** → Rata-rata Lama Sekolah (jumlah rata-rata tahun pendidikan formal penduduk usia 25 tahun ke atas).  
+
+            **Ketentuan pengisian:**  
+            1. Setiap kolom wajib diisi lengkap sesuai format, jangan menambah/mengurangi kolom.  
+            2. Tidak boleh ada sel kosong pada baris data.  
+            3. Nama Wilayah harus sesuai format Pascal Case.  
+            4. Seluruh nilai indikator (AHH_L, AHH_P, P0, P1, P2, RLS) diisi dengan angka desimal.  
+            5. Simpan dataset dalam format Excel (`.xlsx`) sebelum diunggah ke website.  
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
     
     #Load & Validate dataset

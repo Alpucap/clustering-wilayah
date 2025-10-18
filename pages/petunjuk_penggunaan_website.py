@@ -26,6 +26,16 @@ def show():
         unsafe_allow_html=True
     )
     
+    #Manual Book
+    with open("assets/files/DummyWord.docx", "rb") as file_manual:
+        st.download_button(
+            label="Download Buku Manual / Panduan Website",
+            data=file_manual,
+            file_name="Buku_Manual_Skripsi.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
+        )
+                
     #QnA
     with st.expander("Apa itu Angka Harapan Hidup (AHH)?"):
         st.write(
