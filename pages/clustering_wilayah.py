@@ -62,9 +62,15 @@ def show():
                 )
 
         with col2:
-            if st.button("Petunjuk Pengisian Template Dataset", use_container_width=True):
-                st.session_state.page = "petunjuk_penggunaan_website"
-                st.rerun()
+            with open("assets/files/DummyWord.docx", "rb") as file_petunjuk_penggunaan:
+                st.download_button(
+                    label="Panduan Pengisian Template Dataset",
+                    data=file_petunjuk_penggunaan,
+                    file_name="Panduan_Pengisian_Dataset.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
+
     
     #Load & Validate dataset
     df_clustering_wilayah = None
