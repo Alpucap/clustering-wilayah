@@ -20,7 +20,7 @@ def validate_login_fields(email, password, db):
 
 
 def show(cookies):
-    st.markdown("<h1 style='text-align:center;font-weight:bold;'>Login</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;font-weight:bold;'>Selamat Datang Kembali</h1>", unsafe_allow_html=True)
 
     if "user_id" in st.session_state:
         st.info(f"Anda sudah login sebagai {st.session_state['username']}")

@@ -5,6 +5,7 @@ gatherUsageStats = false
 headless = true
 enableCORS = true
 enableXsrfProtection = true
+maxUploadSize = 50
 
 [theme]
 base = "dark"

@@ -60,7 +60,7 @@ def validate_all_fields(username, email, password, confirm_password, db):
 
 def show():
     st.markdown(
-        "<h1 style='text-align: center; font-weight: bold;'>Register</h1>", 
+        "<h1 style='text-align: center; font-weight: bold;'>Create Account</h1>", 
         unsafe_allow_html=True
     )
 

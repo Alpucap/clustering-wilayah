@@ -45,7 +45,7 @@ def page_loader():
 
 st.set_page_config(
     page_title="Clustering Wilayah",  
-    page_icon="🗺️",
+    page_icon="static/browser_icon.png",
     layout="wide"
 )
 

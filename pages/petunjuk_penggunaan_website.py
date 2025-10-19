@@ -15,16 +15,17 @@ def show():
     st.markdown(
         """
         <p style='text-align: justify; font-size: 16px;'>
-        Halaman ini memandu pengguna memahami indikator yang digunakan — 
-        <b>Angka Harapan Hidup (AHH)</b>, <b>Persentase Penduduk Miskin (P0)</b>, 
-        <b>Indeks Kedalaman Kemiskinan (P1)</b>, <b>Indeks Keparahan Kemiskinan (P2)</b>, 
-        serta <b>Rata-rata Lama Sekolah (RLS)</b> — serta cara menjalankan proses clustering. 
-        Dengan mengikuti petunjuk ini, pengguna dapat langsung mencoba analisis dan melihat hasil 
-        pengelompokan kabupaten/kota di Indonesia berdasarkan kondisi sosial-ekonomi.
+        Untuk memahami cara menggunakan fitur <b>pengelompokan wilayah</b>, tidak perlu khawatir. 
+        Website ini sudah dilengkapi dengan <b>Buku Manual</b> yang berisi penjelasan mengenai alur penggunaan, 
+        mulai dari cara mengunggah dataset, memilih metode clustering, menentukan jumlah cluster, 
+        hingga melihat hasil analisis dalam bentuk tabel, grafik, dan peta interaktif.  
+        <br><br>
+        Silakan unduh <b>Buku Manual</b> dengan klik tombol di bawah ini.
         </p>
         """,
         unsafe_allow_html=True
     )
+
     
     #Manual Book
     with open("assets/files/DummyWord.docx", "rb") as file_manual:
@@ -35,37 +36,82 @@ def show():
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             use_container_width=True
         )
-                
+    
+    with st.expander("Bagaimana cara menggunakan clustering wilayah?"):
+        st.write(
+            """
+            1. Buka halaman **Clustering Wilayah** lalu unduh template dataset.  
+            2. Lengkapi dataset sesuai format (Nama Wilayah, Tahun, AHH_L, AHH_P, P0, P1, P2, RLS) lalu unggah kembali ke website.  
+            3. Setelah dataset berhasil diunggah, tentukan parameter clustering:  
+                - Metode (Intelligent K-Median atau K-Medoids)  
+                - Fitur yang digunakan (preset/manual)  
+                - Rentang tahun analisis  
+                - Jumlah cluster (khusus untuk K-Medoids)  
+                - Metrik jarak  
+            4. Klik tombol **Jalankan Clustering** untuk memproses data.  
+            5. Lihat hasil pada halaman **Hasil Clustering** berupa tabel, ringkasan cluster, serta analisis.  
+            6. Akses visualisasi tambahan (silhouette score, DBI, korelasi variabel, distribusi indikator, dan peta interaktif).  
+            7. Unduh hasil clustering maupun visualisasi dalam format Excel, PDF, atau PNG sesuai kebutuhan.  
+            """
+        )
+
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button("Mulai Clustering"):
+                st.session_state.page = "clustering"
+                st.rerun()
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style='text-align: justify; font-size: 16px;'>
+        Berikut merupakan beberapa penjelasan dari indikator, metode, ataupun istilah 
+        yang digunakan pada website ini.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+    
     #QnA
+    with st.expander("Apa itu Clustering?"):
+        st.write(
+            "Clustering adalah metode analisis data untuk mengelompokkan objek yang memiliki kemiripan karakteristik "
+            "ke dalam satu kelompok (cluster), sehingga objek dalam satu cluster lebih mirip satu sama lain dibandingkan "
+            "dengan objek di cluster lain. "
+            "Dalam konteks website ini, clustering digunakan untuk mengelompokkan kabupaten/kota di Indonesia "
+            "berdasarkan indikator kesehatan, pendidikan, dan kemiskinan."
+        )
+
     with st.expander("Apa itu Angka Harapan Hidup (AHH)?"):
         st.write(
-            "AHH adalah rata-rata perkiraan banyak tahun yang dapat ditempuh oleh seseorang sejak lahir, "
-            "dengan asumsi pola mortalitas saat ini tetap berlaku. Indikator ini merepresentasikan tingkat kesehatan masyarakat."
+            "AHH adalah rata-rata perkiraan jumlah tahun yang dapat dijalani seseorang sejak lahir. "
+            "Semakin tinggi AHH menunjukkan semakin baik kualitas kesehatan masyarakat suatu wilayah."
         )
 
     with st.expander("Apa itu Persentase Penduduk Miskin (P0)?"):
         st.write(
-            "P0 adalah persentase penduduk yang hidup di bawah garis kemiskinan pada suatu wilayah. "
-            "Indikator ini mencerminkan tingkat kemiskinan absolut."
+            "P0 adalah persentase penduduk yang hidup di bawah garis kemiskinan dibandingkan dengan total penduduk. "
+            "Indikator ini menggambarkan tingkat kemiskinan di suatu wilayah."
         )
 
     with st.expander("Apa itu Indeks Kedalaman Kemiskinan (P1)?"):
         st.write(
-            "P1 mengukur rata-rata kesenjangan pengeluaran penduduk miskin terhadap garis kemiskinan. "
-            "Semakin tinggi nilainya, semakin jauh rata-rata pengeluaran penduduk miskin dari garis kemiskinan."
+            "P1 atau poverty gap index mengukur rata-rata jarak pengeluaran penduduk miskin terhadap garis kemiskinan. "
+            "Semakin tinggi P1 berarti rata-rata penduduk miskin semakin jauh dari garis kemiskinan."
         )
 
     with st.expander("Apa itu Indeks Keparahan Kemiskinan (P2)?"):
         st.write(
-            "P2 mengukur tingkat ketimpangan pengeluaran di antara penduduk miskin. "
-            "Semakin tinggi nilainya, semakin besar kesenjangan antarpenduduk miskin di bawah garis kemiskinan."
+            "P2 menunjukkan tingkat ketimpangan di antara penduduk miskin. "
+            "Semakin tinggi P2 berarti semakin besar perbedaan tingkat kemiskinan antar rumah tangga miskin."
         )
 
     with st.expander("Apa itu Rata-rata Lama Sekolah (RLS)?"):
         st.write(
-            "RLS adalah rata-rata jumlah tahun penduduk berusia 25 tahun ke atas telah menempuh pendidikan formal. "
-            "Indikator ini merepresentasikan kondisi pendidikan suatu wilayah."
+            "RLS adalah rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 15 tahun ke atas. "
+            "Semakin tinggi RLS menunjukkan semakin baik kualitas sumber daya manusia dari aspek pendidikan."
         )
+
 
     with st.expander("Apa itu Intelligent K-Median?"):
         st.write(
@@ -78,21 +124,3 @@ def show():
             "K-Medoids adalah algoritma clustering mirip dengan K-Means, tetapi menggunakan objek aktual sebagai pusat cluster. "
             "Metode ini lebih tahan terhadap outlier dibandingkan K-Means."
         )
-
-    with st.expander("Bagaimana cara menggunakan clustering wilayah?"):
-        st.write(
-            """
-            1. Upload dataset (.xlsx).  
-            2. Pilih metode clustering.  
-            3. Tentukan jumlah cluster dan periode data.  
-            4. Jalankan analisis.  
-            5. Lihat hasil pada halaman Hasil Clustering.  
-            6. Unduh hasil analisis jika diperlukan.  
-            """
-        )
-
-        col1, col2 = st.columns([1, 5])
-        with col1:
-            if st.button("Mulai Clustering"):  
-                st.session_state.page = "clustering"
-                st.rerun()

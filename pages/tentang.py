@@ -14,28 +14,42 @@ def show():
     #Description
     st.markdown(
         """
-        <div style='text-align: justify; font-size:16px; padding-left:50px; padding-right:50px; white-space: normal; word-wrap: break-word;'>
-            Kesenjangan kesejahteraan antarwilayah di Indonesia masih menjadi permasalahan yang tercermin dari variasi indikator kesehatan, pendidikan, dan kemiskinan. 
-            Perbedaan ini tercermin dari variasi Angka Harapan Hidup (AHH) laki-laki dan perempuan, tingkat kemiskinan yang diukur melalui Persentase Penduduk Miskin (P0), 
-            Indeks Kedalaman Kemiskinan (P1), Indeks Keparahan Kemiskinan (P2), serta capaian pendidikan melalui Rata-rata Lama Sekolah (RLS). 
-            Kondisi ini erat kaitannya dengan pencapaian Sustainable Development Goals (SDGs), khususnya SDG 1 (No Poverty), SDG 3 (Good Health and Well-being), 
-            dan SDG 4 (Quality Education). Untuk itu, diperlukan analisis pola dan karakteristik wilayah untuk memberikan pemahaman yang lebih mendalam mengenai disparitas antarwilayah. 
-            Perancangan ini bertujuan untuk mengelompokkan kabupaten/kota di Indonesia berdasarkan lima variabel tersebut menggunakan algoritma Intelligent K-Median dan K-Medoids. 
-            Intelligent K-Median digunakan karena mampu mengatasi kelemahan inisialisasi acak pada K-Median standar sekaligus lebih tahan terhadap outlier, 
-            sedangkan K-Medoids dipilih sebagai pembanding yang juga menggunakan titik data aktual sebagai pusat cluster. 
-            Dataset yang digunakan merupakan data sekunder dari Badan Pusat Statistik (BPS) untuk periode 2022–2024. 
+        <div style='text-align: justify; font-size:16px; padding-left:50px; padding-right:50px;'>
+        Website ini dikembangkan untuk menyajikan informasi mengenai kondisi wilayah di Indonesia 
+        melalui proses <b>clustering</b>. Dengan mengunggah dataset sesuai format, pengguna dapat 
+        melihat bagaimana kabupaten/kota dikelompokkan berdasarkan indikator tertentu seperti 
+        Angka Harapan Hidup (AHH), Persentase Penduduk Miskin (P0), Indeks Kedalaman Kemiskinan (P1), 
+        Indeks Keparahan Kemiskinan (P2), dan Rata-Rata Lama Sekolah (RLS). 
+        <br><br>
+        Hasil yang ditampilkan berupa tabel, grafik, serta peta interaktif yang dapat diunduh. 
+        Dengan demikian, website ini bermanfaat sebagai informasi untuk memahami perbedaan antarwilayah, 
+        mendukung analisis, maupun dijadikan referensi bagi penelitian dan pengambilan keputusan.
         </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+        
+    st.markdown(
+        """
+        <p style='text-align: justify; font-size:16px; padding-left:50px; padding-right:50px;'>
+        Jika membutuhkan informasi lebih lanjut atau memiliki pertanyaan terkait penggunaan website, 
+        Anda dapat menghubungi kami melalui kontak berikut:
+        </p>
         """,
         unsafe_allow_html=True
     )
     
     st.markdown(
         """
-        s
+        <div style='font-size:16px; padding-left:50px;'>
+        <b>Email:</b> <a href="mailto:alpucaps@gmail.com">alpucaps@gmail.com</a><br>
+        <b>Instagram:</b> <a href="https://instagram.com/hnscns" target="_blank">@hnscns</a>
+        </div>
         """,
         unsafe_allow_html=True
     )
-
 
 
 

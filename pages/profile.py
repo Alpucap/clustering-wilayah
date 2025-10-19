@@ -51,7 +51,7 @@ def show(cookies):
     st.divider()
 
     #Logout dan Delete Account
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([3, 1])
 
     with col1:
         if st.button("Logout", use_container_width=True):
@@ -65,36 +65,37 @@ def show(cookies):
             st.rerun()
 
     with col2:
-        if st.button("Hapus Akun", type="primary", use_container_width=True):
+        if st.button("Hapus Akun", use_container_width=True):
             st.session_state.show_delete_confirmation = True
 
+    #Delete Confirmation
     if st.session_state.get('show_delete_confirmation', False):
-        st.warning("Apakah Anda yakin ingin menghapus akun ini?")
-        col1, col2, col3 = st.columns(3)
-
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.error("⚠️ **Apakah Anda yakin ingin menghapus akun ini?**")
+        
+        confirm = st.checkbox("Saya yakin dan memahami bahwa tindakan ini tidak dapat dibatalkan")
+        
+        col1, col2 = st.columns(2)
+        
         with col1:
-            if st.button("Batal"):
+            if st.button("Batal", use_container_width=True):
                 st.session_state.show_delete_confirmation = False
                 st.rerun()
 
         with col2:
-            confirm = st.checkbox("Saya yakin")
+            if st.button("Ya, Hapus", type="primary", disabled=not confirm, use_container_width=True):
+                db.delete(user)
+                db.commit()
+                st.session_state.clear()
 
-        with col3:
-            if st.button("Ya, Hapus", disabled=not confirm):
-                if confirm:
-                    db.delete(user)
-                    db.commit()
-                    st.session_state.clear()
+                cookies["user_id"] = ""
+                cookies["username"] = ""
+                cookies.save()
 
-                    cookies["user_id"] = ""
-                    cookies["username"] = ""
-                    cookies.save()
-
-                    st.session_state.show_delete_confirmation = False
-                    st.success("Akun berhasil dihapus.")
-                    st.session_state.page = "register"
-                    st.rerun()
+                st.session_state.show_delete_confirmation = False
+                st.success("Akun berhasil dihapus.")
+                st.session_state.page = "register"
+                st.rerun()
 
     if 'show_delete_confirmation' not in st.session_state:
         st.session_state.show_delete_confirmation = False

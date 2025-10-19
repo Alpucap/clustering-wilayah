@@ -395,7 +395,7 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
     #Peta dasar
     m = folium.Map(
         location=[-2.5, 118],
-        zoom_start=4,
+        zoom_start=5,
         tiles="OpenStreetMap",
         prefer_canvas=True
     )

@@ -13,7 +13,5 @@ venv/
 .streamlit/secrets.toml
 
 #Dataset Clustering
-assets/files/Dataset_Clustering_Wilayah.xlsx
-
 assets/shapefile/*
 

@@ -1,124 +1,15 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_evaluasi, visualisasi_silhouette_full, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
+from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
+from api.hasil_clustering import fig_to_png_bytes, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
 import io
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import pandas as pd
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, PageBreak
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.utils import ImageReader
 import zipfile
-from PIL import Image as PILImage
-
-
-#Helper method untuk sementara
-def fig_to_png_bytes(fig):
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches="tight")
-    buf.seek(0)
-    return buf.getvalue()
-
-def figs_to_pdf(figs):
-    buf = io.BytesIO()
-    page_w, page_h = landscape(A4)
-    
-    max_width = page_w - 100       
-    max_height = page_h - 150
-
-    doc = SimpleDocTemplate(
-        buf, 
-        pagesize=landscape(A4),
-        leftMargin=40,
-        rightMargin=40,
-        topMargin=40,
-        bottomMargin=40
-    )
-    styles = getSampleStyleSheet()
-    elements = []
-
-    for i, (title, fig) in enumerate(figs, start=1):
-        img_bytes_buf = io.BytesIO()
-        fig.savefig(img_bytes_buf, format="png", bbox_inches="tight", dpi=80, pad_inches=0.1)
-        img_bytes_buf.seek(0)
-
-        pil_img = PILImage.open(img_bytes_buf)
-        iw, ih = pil_img.size
-        img_bytes_buf.seek(0)
-
-        scale = min(max_width / iw, max_height / ih, 1.0) * 0.85  
-        w, h = iw * scale, ih * scale
-
-        elements.append(Paragraph(title, styles["Heading2"]))
-        elements.append(Image(img_bytes_buf, width=w, height=h))
-
-        if i < len(figs):
-            elements.append(PageBreak())
-
-    doc.build(elements)
-    return buf.getvalue()
-
-def buat_peta_statis(gdf_map, labels, cluster_col="Cluster"):
-    fig, ax = plt.subplots(1, 1, figsize=(8, 10))
-    
-    gdf_map.plot(column=cluster_col, categorical=True, ax=ax, cmap="tab20", edgecolor="black", linewidth=0.3)
-    ax.set_title("Peta Sebaran Hasil Clustering", fontsize=14, fontweight="bold")
-    ax.axis("off")
-
-    cluster_ids = sorted(gdf_map[cluster_col].unique())
-    handles = []
-    cmap = plt.get_cmap("tab20")
-
-    for cid in cluster_ids:
-        cluster_label = labels.get(cid, f"Cluster {cid}")
-        color = cmap(cid % 20)
-        handles.append(mpatches.Patch(color=color, label=f"Cluster {cid}: {cluster_label}"))
-
-    ax.legend(
-        handles=handles,
-        title=f"Keterangan Cluster {labels.get('algo','')}".strip(),
-        loc="lower left",
-        fontsize=8,
-        title_fontsize=9
-    )
-
-    return fig
-
-def loader(text: str):
-    st.markdown(
-        f"""
-        <style>
-        @keyframes spin {{
-            0% {{ transform: rotate(0deg); }}
-            100% {{ transform: rotate(360deg); }}
-        }}
-        .spinner {{
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4da6ff;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px auto;
-        }}
-        </style>
-
-        <div style="text-align:center; padding:60px;">
-            <div class="spinner"></div>
-            <div style="font-size:24px; font-weight:bold; color:#FAFAFA;">
-                {text}
-            </div>
-            <div style="font-size:16px; color:gray; margin-top:4px;">
-                Proses ini mungkin membutuhkan waktu beberapa detik
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
 
 def show():
     #Title
@@ -135,27 +26,23 @@ def show():
     st.markdown(
         """
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
-            Halaman ini menampilkan hasil pengelompokan wilayah berdasarkan indikator sosial-ekonomi.
-            Visualisasi interaktif akan membantu pengguna memahami pola distribusi kesejahteraan 
-            antar kabupaten/kota di Indonesia.
+            Berikut merupakan hasil pengelompokan kota/kabupaten di Indonesia yang disajikan dalam bentuk tabel, berbagai visualisasi, 
+            serta pemetaan yang interaktif untuk membantu memahami pola distribusi antarwilayah.
         </p>
         """,
         unsafe_allow_html=True
     )
 
     if "user_input" not in st.session_state:
-        st.error("Belum ada input dari halaman sebelumnya. Silakan upload dataset dan jalankan clustering dulu.")
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button(
-                "Mulai Clustering Wilayah", 
-                use_container_width=True,
-                help="Mulai proses clustering kabupaten/kota di Indonesia"
-            ):
+            st.warning(
+                "Belum ada hasil clustering. "
+                "Silakan lakukan proses clustering di halaman **Clustering Wilayah** dengan menekan tombol di bawah."
+            )
+            if st.button("Mulai Clustering Wilayah"):
                 st.session_state.page = "clustering_wilayah"
-                st.rerun() 
-        return
-    
+                st.rerun()
+            return
+        
     user_input = st.session_state.user_input
     df_hasil = user_input.get("df_hasil")
     vars_ = user_input["fitur_digunakan"]
@@ -168,12 +55,6 @@ def show():
     else:
         st.warning("Belum ada hasil clustering. Silakan ulangi proses.")
         st.stop()
-    
-    # #Info tambahan (null & outlier)
-    # if user_input.get("null_summary") is not None and not user_input["null_summary"].empty:
-    #     st.warning(f"Ada missing value pada kolom:\n{user_input['null_summary'].to_dict(orient='records')}")
-    # if user_input.get("jumlah_outlier", 0) > 0:
-    #     st.warning(f"Ditemukan {user_input['jumlah_outlier']} outlier pada dataset.")
     
     #Ringkasan jumlah anggota per cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Ringkasan Jumlah Anggota per Cluster</p>", unsafe_allow_html=True)
@@ -444,6 +325,7 @@ def show():
             nama_algo=user_input["metode_clustering"],
             fitur_digunakan=user_input["fitur_digunakan"]
         )
+
         placeholder.empty()
         st_folium(m, use_container_width=True, height=800, returned_objects=[])
         fig_map_static = buat_peta_statis(gdf_map, labels, cluster_col="Cluster")

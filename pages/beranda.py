@@ -13,17 +13,15 @@ def show():
     st.markdown(
         f"""
         <style>
-
-        .hero-section {{
+        .hero-clustering-section {{
             position: relative;
             width: 100%;  
-            height: 100vh;   
             height: 70vh;
             background-image: url("data:image/jpg;base64,{img_base64}");
-            background-size: cover; /* gambar pas tanpa distorsi */
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            margin: 0;
+            margin: 0 0 -150px 0;
             padding: 0;
             display: flex;
             justify-content: center;
@@ -33,37 +31,43 @@ def show():
             overflow: hidden;
         }}
 
-        .hero-overlay {{
+        .hero-clustering-overlay {{
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.65);
         }}
 
-        .hero-content {{
+        .hero-clustering-content {{
             position: relative;
             z-index: 1;
             padding: 20px;
         }}
 
-        .hero-content h1 {{
+        .hero-clustering-content h1 {{
             font-size: 2.5rem;
             font-weight: bold;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
             margin-bottom: 20px;
         }}
 
-        .hero-content p {{
+        .hero-clustering-content p {{
             font-size: 1.1rem;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 0 auto 30px auto;
             text-shadow: 1px 1px 6px rgba(0,0,0,0.7);
+        }}
+        
+        div[data-testid="column"]:has(.cta-clustering-button) {{
+            position: relative;
+            z-index: 1000;
+            margin-top: -150px;
         }}
         </style>
 
-        <div class="hero-section">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
+        <div class="hero-clustering-section">
+            <div class="hero-clustering-overlay"></div>
+            <div class="hero-clustering-content">
                 <h1>PENGELOMPOKAN WILAYAH DI INDONESIA</h1>
                 <p>Clustering Wilayah di Indonesia Menggunakan <b>Intelligent K-Median</b> dan <b>K-Medoids</b></p>
             </div>
@@ -72,78 +76,89 @@ def show():
         unsafe_allow_html=True
     )
     
+    #CTA Button
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown('<div class="cta-clustering-button"></div>', unsafe_allow_html=True)
+        if st.button(
+            "Mulai Eksplorasi Kota & Kabupaten di Indonesia", 
+            use_container_width=True,
+            help="Mulai proses clustering kabupaten/kota di Indonesia",
+            key="btn_start_clustering"
+        ):
+            st.session_state.page = "clustering_wilayah"
+            st.rerun()
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
     #Description
     st.markdown(
         """
-        <p style='text-align: justify; font-size: 16px; padding-top:30px;'>
-        Website ini bertujuan untuk mengelompokkan kabupaten/kota di Indonesia berdasarkan 
-        <b style="color:#4da6ff;">Angka Harapan Hidup (AHH)</b>, 
-        <b style="color:#4da6ff;">Persentase Penduduk Miskin (P0)</b>, 
-        <b style="color:#4da6ff;">Rata-rata Lama Sekolah (RLS)</b>, 
-        <b style="color:#4da6ff;">Indeks Kedalaman Kemiskinan (P1)</b>, dan 
-        <b style="color:#4da6ff;">Indeks Keparahan Kemiskinan (P2)</b>. Dengan menggunakan metode <b style="color:#4da6ff;">Intelligent K-Median</b> dan 
-        <b style="color:#4da6ff;">K-Medoids</b>, hasil pengelompokan kabupaten/kota disajikan melalui 
-        visualisasi interaktif agar pengguna dapat lebih mudah memahami pola distribusi kesejahteraan 
-        dan kondisi sosial-ekonomi antarwilayah di Indonesia.
-        </p>
+        <div>
+            <p style='text-align: justify; font-size: 16px; padding-top:50px;'>
+            Website ini dirancang untuk <b style="color:#4da6ff;">mengelompokkan kabupaten/kota di Indonesia</b> 
+            dengan menggunakan metode <b style="color:#4da6ff;">Intelligent K-Median</b> dan <b style="color:#4da6ff;">K-Medoids</b>. 
+            Hasil analisis ditampilkan dalam bentuk <b style="color:#4da6ff;">tabel, grafik, dan peta interaktif</b>, 
+            serta dievaluasi menggunakan <b style="color:#4da6ff;">Silhouette Coefficient</b> dan <b style="color:#4da6ff;">Davies-Bouldin Index (DBI)</b>. 
+            Melalui pendekatan ini, pengguna tidak hanya melihat hasil pengelompokan wilayah, 
+            tetapi juga dapat memperoleh berbagai <b style="color:#4da6ff;">manfaat</b>.
+            </p>
+        </div>
         """,
         unsafe_allow_html=True
     )
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    
-    #CTA Button untuk ke Halaman Clustering Wilayah
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button(
-            "Mulai Clustering Wilayah", 
-            use_container_width=True,
-            help="Mulai proses clustering kabupaten/kota di Indonesia"
-        ):
-            st.session_state.page = "clustering_wilayah"
-            st.rerun()  
+    # Fungsi helper untuk membuat section dengan cards
+    def create_card_section(title, items, columns=3, show_title_in_card=True, show_section_title=True):
+        if show_section_title:
+            st.markdown(
+                f"""
+                <h2 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:30px;'>
+                    {title}
+                </h2>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        # Jika items berupa list string (untuk Manfaat Website)
+        if items and isinstance(items[0], str):
+            cols = st.columns(columns, gap="medium")
+            for idx, item in enumerate(items):
+                with cols[idx]:
+                    st.markdown(
+                        f"""
+                        <div class="info-card" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+                            <p style="margin: 0; line-height: 1.6; text-align: center;">{item}</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+        #Jika items berupa list dict (untuk Indikator dan Metode)
+        else:
+            for i in range(0, len(items), columns):
+                cols = st.columns(columns)
+                for j in range(columns):
+                    if i + j < len(items):
+                        with cols[j]:
+                            item = items[i + j]
+                            if show_title_in_card:
+                                st.markdown(
+                                    f"""
+                                    <div class="info-card">
+                                        <h3>{item['title']}</h3>
+                                        <p>{item['description']}</p>
+                                    </div>
+                                    """,
+                                    unsafe_allow_html=True
+                                )
+                st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
+        
+        st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    #Indikator Clustering
-    st.markdown(
-        """
-        <h2 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:30px;'>
-            Indikator Clustering
-        </h2>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    indikator_clustering = [
-        {
-            "title": "Angka Harapan Hidup (AHH) Laki-laki",
-            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk laki-laki, mencerminkan kualitas kesehatan dan kesejahteraan kelompok pria di suatu wilayah."
-        },
-        {
-            "title": "Angka Harapan Hidup (AHH) Perempuan",
-            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk perempuan, mencerminkan kualitas kesehatan dan kesejahteraan kelompok wanita di suatu wilayah."
-        },
-        {
-            "title": "Persentase Penduduk Miskin (P0)",
-            "description": "Proporsi penduduk yang berada di bawah garis kemiskinan. Indikator ini mengukur tingkat kemiskinan di suatu wilayah."
-        },
-        {
-            "title": "Rata-rata Lama Sekolah (RLS)",
-            "description": "Rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 25 tahun ke atas, mencerminkan tingkat pendidikan."
-        },
-        {
-            "title": "Indeks Kedalaman Kemiskinan (P1)",
-            "description": "Mengukur seberapa jauh rata-rata pendapatan penduduk miskin dari garis kemiskinan. Semakin tinggi nilainya, semakin dalam kemiskinannya."
-        },
-        {
-            "title": "Indeks Keparahan Kemiskinan (P2)",
-            "description": "Mengukur ketimpangan pengeluaran di antara penduduk miskin. Nilai yang tinggi menunjukkan adanya kesenjangan yang besar."
-        }
-    ]
-    
+    # CSS Styling (dipanggil sekali saja di awal)
     st.markdown("""
     <style>
     .info-card {
@@ -178,37 +193,43 @@ def show():
     </style>
     """, unsafe_allow_html=True)
 
-    for i in range(0, len(indikator_clustering), 3):
-        cols = st.columns(3)
-        for j in range(3):
-            if i + j < len(indikator_clustering):
-                with cols[j]:
-                    indicator = indikator_clustering[i+j]
-                    st.markdown(
-                        f"""
-                        <div class="info-card">
-                            <h3>{indicator['title']}</h3>
-                            <p>{indicator['description']}</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-        st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    #Metode Clustering
-    st.markdown(
-        """
-        <h2 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:30px;'>
-            Metode Clustering
-        </h2>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    metode_clustering = [
+    # Data untuk setiap section
+    manfaat_data = [
+        "Menyediakan penerapan algoritma clustering dalam bentuk sistem interaktif.",
+        "Menampilkan hasil pengelompokan wilayah dalam bentuk tabel, grafik, dan peta interaktif.",
+        "Memberikan informasi yang mudah diakses dan dipahami mengenai kondisi antarwilayah di Indonesia.",
+        "Membantu mengidentifikasi pola kesamaan dan perbedaan antarwilayah dalam bentuk visualisasi dan pemetaan."
+    ]
+
+    indikator_data = [
+        {
+            "title": "Angka Harapan Hidup (AHH) Laki-laki",
+            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk laki-laki, mencerminkan kualitas kesehatan dan kesejahteraan kelompok pria di suatu wilayah."
+        },
+        {
+            "title": "Angka Harapan Hidup (AHH) Perempuan",
+            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk perempuan, mencerminkan kualitas kesehatan dan kesejahteraan kelompok wanita di suatu wilayah."
+        },
+        {
+            "title": "Persentase Penduduk Miskin (P0)",
+            "description": "Proporsi penduduk yang berada di bawah garis kemiskinan. Indikator ini mengukur tingkat kemiskinan di suatu wilayah."
+        },
+        {
+            "title": "Rata-rata Lama Sekolah (RLS)",
+            "description": "Rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 25 tahun ke atas, mencerminkan tingkat pendidikan."
+        },
+        {
+            "title": "Indeks Kedalaman Kemiskinan (P1)",
+            "description": "Mengukur seberapa jauh rata-rata pendapatan penduduk miskin dari garis kemiskinan. Semakin tinggi nilainya, semakin dalam kemiskinannya."
+        },
+        {
+            "title": "Indeks Keparahan Kemiskinan (P2)",
+            "description": "Mengukur ketimpangan pengeluaran di antara penduduk miskin. Nilai yang tinggi menunjukkan adanya kesenjangan yang besar."
+        }
+    ]
+
+    metode_data = [
         {
             "title": "Intelligent K-Median",
             "description": "Sebuah pengembangan dari algoritma K-Median yang memilih medoid (titik pusat) awal secara cerdas, bukan acak. Tujuannya adalah untuk menghasilkan cluster yang lebih stabil, akurat, dan mempercepat proses konvergensi."
@@ -218,17 +239,27 @@ def show():
             "description": "Algoritma ini mengelompokkan data dengan memilih titik data aktual sebagai pusat cluster (medoid). Metode ini lebih tangguh terhadap noise dan outlier dibandingkan K-Means yang menggunakan rata-rata sebagai pusat cluster."
         }
     ]
+
+
+    # Render sections
+    create_card_section(None, manfaat_data, columns=4, show_section_title=False)
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    create_card_section("Indikator Clustering", indikator_data, columns=3)
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    create_card_section("Metode Clustering", metode_data, columns=2)
     
-    cols = st.columns(2)
-    for i in range(len(metode_clustering)):
-        with cols[i]:
-            metode = metode_clustering[i]
-            st.markdown(
-                f"""
-                <div class="info-card">
-                    <h3>{metode['title']}</h3>
-                    <p>{metode['description']}</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+    #Clustering Wilayah Button
+    st.markdown("<div style='margin-top: 96px;'></div>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button(
+            "Jalankan Pengelompokan Sekarang", 
+            use_container_width=True,
+            help="Mulai proses clustering kabupaten/kota di Indonesia",
+            key="btn_start_clustering_bottom"
+        ):
+            st.session_state.page = "clustering_wilayah"
+            st.rerun()

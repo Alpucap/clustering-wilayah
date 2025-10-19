@@ -20,9 +20,10 @@ def show():
     st.markdown(
         """
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
-            Halaman ini digunakan untuk melakukan <b>clustering wilayah di Indonesia</b> berdasarkan 
-            indikator yang tersedia pada dataset. Untuk memulai, silakan unggah dataset sesuai format 
-            yang disediakan, kemudian pilih metode clustering, indikator yang ingin digunakan, serta rentang tahun analisis.
+            Setiap kota dan kabupaten di Indonesia memiliki kondisi sosial dan tingkat kemiskinan yang berbeda-beda. Perbedaan ini sering kali menimbulkan kesenjangan antarwilayah, sehingga penting untuk melihat bagaimana pola tersebut terbentuk. 
+            Melalui pendekatan berbasis data, gambaran mengenai kondisi wilayah dapat dieksplorasi secara lebih jelas.
+            <br>
+            Silakan unggah dataset sesuai format yang tersedia untuk mulai mengeksplorasi kota/kabupaten di Indonesia.
         </p>
         """,
         unsafe_allow_html=True
@@ -32,78 +33,82 @@ def show():
     st.markdown(
         """
         <p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'> 
-        Upload Dataset
+            Upload Dataset
         </p>
         """,
         unsafe_allow_html=True
     )
-    
-    file_dataset = st.file_uploader(
-        "Unggah file dataset dalam format Excel (.xlsx)",
-        type=["xlsx"],
-        help="Pastikan format dataset sesuai template yang disediakan."
+    #Pilihan sumber dataset
+    dataset_option = st.radio(
+        "Pilih sumber dataset:",
+        ["Upload Dataset Sendiri", "Gunakan Dataset yang Disediakan"],
+        index=0,
+        horizontal=True
     )
-    st.caption("Hanya berkas Excel (.xlsx) yang didukung.")
-    
-    if file_dataset is None:
-        col1, col2, col3 = st.columns([2, 1, 2])
-        with col1:
-            with open("assets/files/Template_Dataset_Clustering_Wilayah.xlsx", "rb") as template_dataset:
-                st.download_button(
-                    label="Belum Punya Dataset? Download Template Dataset",
-                    data=template_dataset,
-                    file_name="template_dataset_clustering_wilayah.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True
-                )
-                
-        st.markdown(
-            """
-            <div style="margin-top:8px;">
 
-            **Petunjuk Pengisian Template Dataset**  
-
-            Template dataset diberikan dalam format Excel (`.xlsx`) dengan kolom sebagai berikut:  
-
-            - **Nama Wilayah** → Nama kabupaten/kota di Indonesia (gunakan format *Pascal Case*, contoh: `Kota Jakarta Barat`).  
-            - **Tahun** → Tahun data (misalnya `2022`, `2023`).  
-            - **AHH_L** → Angka Harapan Hidup Laki-laki (rata-rata usia harapan hidup penduduk laki-laki).  
-            - **AHH_P** → Angka Harapan Hidup Perempuan (rata-rata usia harapan hidup penduduk perempuan).  
-            - **P0** → Persentase Penduduk Miskin (proporsi penduduk di bawah garis kemiskinan).  
-            - **P1** → Indeks Kedalaman Kemiskinan (mengukur seberapa jauh rata-rata penduduk miskin dari garis kemiskinan).  
-            - **P2** → Indeks Keparahan Kemiskinan (menggambarkan ketimpangan di antara penduduk miskin).  
-            - **RLS** → Rata-rata Lama Sekolah (jumlah rata-rata tahun pendidikan formal penduduk usia 25 tahun ke atas).  
-
-            **Ketentuan pengisian:**  
-            1. Setiap kolom wajib diisi lengkap sesuai format, jangan menambah/mengurangi kolom.  
-            2. Tidak boleh ada sel kosong pada baris data.  
-            3. Nama Wilayah harus sesuai format Pascal Case.  
-            4. Seluruh nilai indikator (AHH_L, AHH_P, P0, P1, P2, RLS) diisi dengan angka desimal.  
-            5. Simpan dataset dalam format Excel (`.xlsx`) sebelum diunggah ke website.  
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-    
-    #Load & Validate dataset
     df_clustering_wilayah = None
-    if file_dataset is not None:
-        try:
-            df_clustering_wilayah = load_dataset(file_dataset)   
-            validate_dataset(df_clustering_wilayah)                
-            st.success("Dataset berhasil dimuat!")
-        except Exception as e:
-            st.error(f"Dataset tidak valid: {e}")
-            return 
+    
+    if dataset_option == "Upload Dataset Sendiri":
+        file_dataset = st.file_uploader(
+            "Silakan unggah file dataset dalam format Excel (.xlsx)",
+            type=["xlsx"],
+            help="Pastikan format dataset sesuai template yang disediakan."
+        )
+        st.caption("Hanya berkas Excel (.xlsx) yang didukung, maksimal 50 MB.")
+        
+        if file_dataset is None:
+            col1, col2, col3 = st.columns([2, 1, 2]) 
+            with col1:
+                with open("assets/files/Template_Dataset_Clustering_Wilayah.xlsx", "rb") as template_dataset:
+                    st.download_button(
+                        label="Belum Punya Dataset? Download Template Dataset",
+                        data=template_dataset,
+                        file_name="template_dataset_clustering_wilayah.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
+                    )
+
+            st.markdown(
+                """
+                **Petunjuk Pengisian Template Dataset**
+
+                Template dataset diberikan dalam format `Excel (.xlsx)` dengan kolom sebagai berikut:
+                - **Nama Wilayah** - Nama kabupaten/kota di Indonesia (gunakan format *Pascal Case*, contoh: `Kota Jakarta Barat`).
+                - **Tahun** - Tahun data (misalnya `2022, 2023, 2024`).
+                - **AHH_L** - Angka Harapan Hidup Laki-laki (rata-rata usia harapan hidup penduduk laki-laki).
+                - **AHH_P** - Angka Harapan Hidup Perempuan (rata-rata usia harapan hidup penduduk perempuan).
+                - **P0** - Persentase Penduduk Miskin (proporsi penduduk di bawah garis kemiskinan).
+                - **P1** - Indeks Kedalaman Kemiskinan (mengukur seberapa jauh rata-rata penduduk miskin dari garis kemiskinan).
+                - **P2** - Indeks Keparahan Kemiskinan (menggambarkan ketimpangan di antara penduduk miskin).
+                - **RLS** - Rata-rata Lama Sekolah (jumlah rata-rata tahun pendidikan formal penduduk usia 25 tahun ke atas).
+
+
+                **Ketentuan pengisian:**
+                1. Setiap kolom wajib diisi lengkap sesuai format, jangan menambah/mengurangi kolom.
+                2. Tidak boleh ada sel kosong pada baris data.
+                3. Nama Wilayah harus sesuai format Pascal Case.
+                4. Seluruh nilai indikator `AHH_L, AHH_P, P0, P1, P2, RLS` diisi dengan angka desimal.
+                5. Simpan dataset dalam format `Excel (.xlsx)` sebelum diunggah ke website.
+                """,
+                unsafe_allow_html=False
+            )
+
+        if file_dataset is not None:
+            try:
+                df_clustering_wilayah = load_dataset(file_dataset)
+                validate_dataset(df_clustering_wilayah)
+                st.success("Dataset berhasil dimuat!")
+            except Exception as e:
+                st.error(f"Dataset tidak valid: {e}")
+                df_clustering_wilayah = None
+    else:
+        df_clustering_wilayah = pd.read_excel("assets/files/Dataset_Clustering_Wilayah.xlsx")
 
     if df_clustering_wilayah is not None:
         st.markdown(
             """
             <p style='padding-top:16px; padding-bottom:4px; font-size: 20px; font-weight: bold;'> 
-            Dataset yang di upload
+                Dataset yang digunakan
             </p>
             """,
             unsafe_allow_html=True
@@ -169,22 +174,20 @@ def show():
     #Pilih Tahun
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Tahun</p>", unsafe_allow_html=True)
 
-    tahun_list = []
-
     if df_clustering_wilayah is not None and "Tahun" in df_clustering_wilayah.columns:
         tahun_list = sorted(df_clustering_wilayah["Tahun"].dropna().astype(int).unique())
-    else:
-        tahun_list = ["Silakan unggah dataset terlebih dahulu"]
 
-    col1, col2 = st.columns(2)
-    with col1:
-        tahun_awal = st.selectbox("Tahun Awal", tahun_list, index=0)
-    with col2:
-        tahun_akhir = st.selectbox("Tahun Akhir", tahun_list, index=len(tahun_list)-1)
+        col1, col2 = st.columns(2)
+        with col1:
+            tahun_awal = int(st.selectbox("Tahun Awal", tahun_list, index=0))
+        with col2:
+            tahun_akhir = int(st.selectbox("Tahun Akhir", tahun_list, index=len(tahun_list)-1))
 
-    if isinstance(tahun_awal, int) and isinstance(tahun_akhir, int):
         if tahun_awal > tahun_akhir:
             st.error("Tahun awal tidak boleh lebih besar dari tahun akhir.")
+    else:
+        st.warning("Silakan unggah dataset terlebih dahulu untuk memilih tahun.")
+        tahun_awal, tahun_akhir = None, None
 
 
     #Pilih Jumlah Cluster
@@ -203,12 +206,21 @@ def show():
 
     #Pilih Metrik Jarak
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Metrik Jarak</p>", unsafe_allow_html=True)
+    if metode_clustering == "Intelligent K-Median":
+        default_index = 0 #manhattan
+        key_metric = "metric_ikmedian"
+    else:
+        default_index = 1 #euclidean
+        key_metric = "metric_kmedoids"
+
     metrik_jarak_label = st.selectbox(
         "Pilih Metrik Jarak",
         ["manhattan", "euclidean"],
+        index=default_index,
+        key=key_metric,
         help="Metode perhitungan jarak."
     )
-
+        
     metrik_jarak = "cityblock" if metrik_jarak_label == "manhattan" else metrik_jarak_label
 
 
