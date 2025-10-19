@@ -77,9 +77,8 @@ def show():
     )
     
     #CTA Button
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
-        st.markdown('<div class="cta-clustering-button"></div>', unsafe_allow_html=True)
         if st.button(
             "Mulai Eksplorasi Kota & Kabupaten di Indonesia", 
             use_container_width=True,
@@ -110,7 +109,7 @@ def show():
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # Fungsi helper untuk membuat section dengan cards
+    #Method untuk membuat section dengan cards
     def create_card_section(title, items, columns=3, show_title_in_card=True, show_section_title=True):
         if show_section_title:
             st.markdown(
@@ -122,7 +121,7 @@ def show():
                 unsafe_allow_html=True
             )
         
-        # Jika items berupa list string (untuk Manfaat Website)
+        #Untuk Manfaat Website
         if items and isinstance(items[0], str):
             cols = st.columns(columns, gap="medium")
             for idx, item in enumerate(items):
@@ -135,10 +134,10 @@ def show():
                         """,
                         unsafe_allow_html=True
                     )
-        #Jika items berupa list dict (untuk Indikator dan Metode)
+        #Untuk Indikator dan Metode
         else:
             for i in range(0, len(items), columns):
-                cols = st.columns(columns)
+                cols = st.columns(columns, gap="medium")
                 for j in range(columns):
                     if i + j < len(items):
                         with cols[j]:
@@ -153,12 +152,10 @@ def show():
                                     """,
                                     unsafe_allow_html=True
                                 )
-                st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
         
         st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
 
 
-    # CSS Styling (dipanggil sekali saja di awal)
     st.markdown("""
     <style>
     .info-card {
@@ -172,6 +169,7 @@ def show():
         flex-direction: column;
         justify-content: start;
         transition: all 0.3s ease-in-out;
+        margin-bottom: 20px;
     }
     .info-card:hover {
         transform: translateY(-5px);
@@ -190,11 +188,24 @@ def show():
         color: #fafafa;
         font-size: 0.95em;
     }
+    
+    /* Responsive button container */
+    .button-container-responsive {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .button-container-responsive {
+            max-width: 100%;
+            padding: 0 30px;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
-
-    # Data untuk setiap section
     manfaat_data = [
         "Menyediakan penerapan algoritma clustering dalam bentuk sistem interaktif.",
         "Menampilkan hasil pengelompokan wilayah dalam bentuk tabel, grafik, dan peta interaktif.",
@@ -240,8 +251,6 @@ def show():
         }
     ]
 
-
-    # Render sections
     create_card_section(None, manfaat_data, columns=4, show_section_title=False)
     st.markdown("<br><br>", unsafe_allow_html=True)
 
@@ -253,7 +262,7 @@ def show():
     #Clustering Wilayah Button
     st.markdown("<div style='margin-top: 96px;'></div>", unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button(
             "Jalankan Pengelompokan Sekarang", 
