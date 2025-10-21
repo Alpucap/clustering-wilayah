@@ -196,8 +196,8 @@ def show():
         jumlah_cluster = st.slider(
             "Pilih jumlah cluster (K)",
             min_value=2,
-            max_value=11,
-            value=3,
+            max_value=6,
+            value=3, #Secara experiment paling optimal
             step=1,
             help="Jumlah cluster untuk analisis."
         )

@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
+from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, analisis_silhouette_per_cluster, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
 from api.hasil_clustering import fig_to_png_bytes, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
 import io
@@ -78,7 +78,7 @@ def show():
         fitur_digunakan=st.session_state.user_input["fitur_digunakan"],
         algoritma=st.session_state.user_input["metode_clustering"]
     )
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([2, 3])
     with col1:
         st.markdown("**Rata-rata indikator per cluster:**")
         st.dataframe(mean_c)
@@ -278,34 +278,36 @@ def show():
         
     #Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Sebaran Indikator per Cluster**")
-        placeholder = st.empty()
-        with placeholder.container():
-            loader("Sedang membuat scatter indikator...")
 
-        fig_scatter = visualisasi_sebaran_cluster_per_indikator(
-            df_hasil,
-            fitur_digunakan=user_input["fitur_digunakan"],
-            algo=user_input["metode_clustering"]
-        )
-        placeholder.empty()
+    st.markdown("<p style='text-align:center; font-size:20px; font-weight:bold; margin-top:24px;'>Sebaran Indikator per Cluster</p>", unsafe_allow_html=True)
+    placeholder = st.empty()
+    with placeholder.container():
+        loader("Sedang membuat scatter indikator...")
+
+    fig_scatter = visualisasi_sebaran_cluster_per_indikator(
+        df_hasil,
+        fitur_digunakan=user_input["fitur_digunakan"],
+        algo=user_input["metode_clustering"]
+    )
+    placeholder.empty()
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col2:
         st.pyplot(fig_scatter, use_container_width=True)
 
 
-    with col2:
-        st.markdown("**Distribusi Indikator per Cluster**")
-        placeholder = st.empty()
-        with placeholder.container():
-            loader("Sedang membuat boxplot indikator...")
+    st.markdown("<p style='text-align:center; font-size:20px; font-weight:bold; margin-top:24px;'>Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
+    placeholder = st.empty()
+    with placeholder.container():
+        loader("Sedang membuat boxplot indikator...")
 
-        fig_box = boxgrid_per_cluster(
-            df_hasil,
-            vars_,
-            f"Distribusi Indikator ({user_input['metode_clustering']})"
-        )
-        placeholder.empty()
+    fig_box = boxgrid_per_cluster(
+        df_hasil,
+        vars_,
+        f"Distribusi Indikator ({user_input['metode_clustering']})"
+    )
+    placeholder.empty()
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col2:
         st.pyplot(fig_box, use_container_width=True)
 
     #Peta Hasil Clustering
@@ -376,7 +378,18 @@ def show():
 
         with col2:
             #PDF
-            pdf_all = figs_to_pdf(st.session_state.all_figs)
+            sil_per_cluster = analisis_silhouette_per_cluster(
+                df_hasil[user_input["fitur_digunakan"]].values,
+                df_hasil["Cluster"].values
+            )
+
+            keterangan_analisis = {
+                "Silhouette Plot": "Rata-rata nilai silhouette per cluster:<br/>" + "<br/>".join(
+                    [f"Cluster {c}: {v:.3f}" for c, v in sil_per_cluster.items()]
+                )
+            }
+
+            pdf_all = figs_to_pdf(st.session_state.all_figs, keterangan_analisis=keterangan_analisis)
             st.download_button(
                 "Download PDF",
                 data=pdf_all,

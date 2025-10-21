@@ -29,25 +29,16 @@ skema_label = {
     4:  ["Sejahtera", "Menengah Atas", "Menengah Bawah", "Tertinggal"],
     5:  ["Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Tertinggal"],
     6:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah Bawah", "Rentan", "Tertinggal"],
-    7:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Rentan", "Tertinggal"],
-    8:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Cukup Rentan", "Rentan", "Tertinggal"],
-    9:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Cukup Rentan", "Rentan", "Sangat Rentan", "Tertinggal"],
-    10: ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Cukup Rentan", "Rentan", "Sangat Rentan", "Tertinggal", "Tertinggal Berat"],
-    11: ["Sejahtera Tinggi", "Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Cukup Rentan", "Rentan", "Sangat Rentan", "Tertinggal", "Tertinggal Berat"],
 }
 
 deskripsi_label = {
     "Sejahtera": "AHH & RLS tinggi; P0/P1/P2 rendah.",
-    "Sejahtera Tinggi": "Indikator positif sangat tinggi; kemiskinan sangat rendah.",
     "Cukup Sejahtera": "Mendekati sejahtera; kemiskinan rendah–sedang.",
     "Menengah Atas": "Di atas rata-rata; kemiskinan terkendali.",
     "Menengah": "Sekitar rata-rata pada semua indikator.",
     "Menengah Bawah": "Sedikit di bawah rata-rata; kemiskinan menengah.",
-    "Cukup Rentan": "Mulai menunjukkan kerentanan; kemiskinan sedang–tinggi.",
     "Rentan": "Indikator positif rendah; kemiskinan tinggi.",
-    "Sangat Rentan": "Positif sangat rendah; kemiskinan sangat tinggi.",
     "Tertinggal": "AHH & RLS rendah; P0/P1/P2 tinggi.",
-    "Tertinggal Berat": "Kondisi sosial-ekonomi paling rendah di rentang cluster."
 }
 
 def ambil_skema_label(jumlah_k: int):
@@ -57,13 +48,6 @@ def ambil_skema_label(jumlah_k: int):
 
 #Analisis Cluster
 def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
-    """
-    df: DataFrame yang minimal punya kolom:
-        - 'Cluster' (int)
-        - indikator sesuai fitur_digunakan (mis: AHH_L, AHH_P, RLS, P0, P1, P2)
-    fitur_digunakan: list nama kolom indikator dipakai
-    algoritma: nama algoritma (untuk logging saja)
-    """
     fitur_positif = [c for c in ["AHH_L", "AHH_P", "RLS"] if c in fitur_digunakan]
     fitur_negatif = [c for c in ["P0", "P1", "P2"] if c in fitur_digunakan]
     fitur_semua  = fitur_positif + fitur_negatif
@@ -90,11 +74,11 @@ def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
         skor = -rata_c[fitur_negatif].mean(axis=1)
 
     ranking = skor.sort_values(ascending=False)
-    urutan  = ranking.index.tolist()
-    k       = len(ranking)
+    urutan = ranking.index.tolist()
+    k = len(ranking)
 
-    skema          = ambil_skema_label(k)
-    label_cluster  = {urutan[i]: skema[i] for i in range(k)}
+    skema = ambil_skema_label(k)
+    label_cluster = {urutan[i]: skema[i] for i in range(k)}
     print("Label cluster:", label_cluster, "\n")
 
     return rata_c, label_cluster, skor
@@ -164,7 +148,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     n_clusters = len(np.unique(label_cluster))
     y_bawah = 5
     
-    fig, ax1 = plt.subplots(figsize=(6, 5))
+    fig, ax1 = plt.subplots(figsize=(5, 4))
 
     for i in range(n_clusters):
         nilai_i = nilai_sample[label_cluster == i]
@@ -211,6 +195,12 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     plt.tight_layout(pad=1)
     return fig
 
+def analisis_silhouette_per_cluster(X, labels):
+    nilai_sample = silhouette_samples(X, labels)
+    hasil = {}
+    for c in np.unique(labels):
+        hasil[c] = np.mean(nilai_sample[labels == c])
+    return hasil
 
 #Visualisasi Sebaran (pairplot)
 def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan, algo: str = ""):
@@ -369,7 +359,7 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
 
     gdf_gabung = gdf.merge(df_h, on="key_join", how="inner")
 
-    gdf_gabung["geometry"] = gdf_gabung["geometry"].simplify(0.05, preserve_topology=True)
+    gdf_gabung["geometry"] = gdf_gabung["geometry"].simplify(0.08, preserve_topology=True)
 
     return gdf_gabung
 
@@ -379,7 +369,6 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
     if fitur_digunakan is None:
         fitur_digunakan = []
 
-    # Normalisasi skor → warna (hijau = lebih baik, merah = lebih rentan)
     norm = mcolors.Normalize(vmin=float(skor.min()), vmax=float(skor.max()))
     cmap = cm.get_cmap("RdYlGn")
     warna_cluster = {
@@ -387,7 +376,6 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
         for c, s in skor.items()
     }
 
-    # Field tooltip: Wilayah + indikator yang ada + Cluster
     nama_kolom_namobj = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
     tooltip_fields  = [nama_kolom_namobj] + [f for f in fitur_digunakan if f in gdf.columns] + ["Cluster"]
     tooltip_aliases = ["Wilayah"] + [indikator_deskripsi.get(f, f) for f in fitur_digunakan] + ["Cluster"]

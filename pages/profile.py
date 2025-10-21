@@ -71,7 +71,7 @@ def show(cookies):
     #Delete Confirmation
     if st.session_state.get('show_delete_confirmation', False):
         st.markdown("<br>", unsafe_allow_html=True)
-        st.error("⚠️ **Apakah Anda yakin ingin menghapus akun ini?**")
+        st.error("**Apakah Anda yakin ingin menghapus akun ini?**")
         
         confirm = st.checkbox("Saya yakin dan memahami bahwa tindakan ini tidak dapat dibatalkan")
         

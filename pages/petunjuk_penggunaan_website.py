@@ -26,7 +26,6 @@ def show():
         unsafe_allow_html=True
     )
 
-    
     #Manual Book
     with open("assets/files/Manual_Book.pdf", "rb") as file_manual:
         st.download_button(
