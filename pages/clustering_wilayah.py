@@ -326,4 +326,5 @@ def show():
                     }
                     st.session_state["loading"] = True
                     st.rerun()
+                    return 
 

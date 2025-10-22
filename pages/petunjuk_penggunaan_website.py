@@ -36,6 +36,9 @@ def show():
             use_container_width=True
         )
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<p>Selain melalui Buku Manual, panduan singkat penggunaan clustering wilayah juga tersedia langsung di bawah ini.</p>", unsafe_allow_html=True)
+    
     with st.expander("Bagaimana cara menggunakan clustering wilayah?"):
         st.write(
             """
@@ -60,7 +63,12 @@ def show():
                 st.session_state.page = "clustering"
                 st.rerun()
     
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")
+        
+    
+    #QnA
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         """
         <p style='text-align: justify; font-size: 16px;'>
@@ -71,7 +79,6 @@ def show():
         unsafe_allow_html=True
     )
     
-    #QnA
     with st.expander("Apa itu Clustering?"):
         st.write(
             "Clustering adalah metode analisis data untuk mengelompokkan objek yang memiliki kemiripan karakteristik "
@@ -110,7 +117,6 @@ def show():
             "RLS adalah rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 15 tahun ke atas. "
             "Semakin tinggi RLS menunjukkan semakin baik kualitas sumber daya manusia dari aspek pendidikan."
         )
-
 
     with st.expander("Apa itu Intelligent K-Median?"):
         st.write(

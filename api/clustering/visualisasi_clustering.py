@@ -177,7 +177,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     #Garis rata-rata silhouette
     ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
     ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
-
+    
     ax1.text(
         nilai_rata, 
         -5,
@@ -187,6 +187,9 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
         ha="left", 
         va="bottom"
     )
+    
+    #Garis nol
+    ax1.axvline(x=0, color="black", linestyle="--", linewidth=1)
 
     ax1.set_yticks([])
     ax1.set_xticks(np.linspace(-0.1, 1.0, 6))
@@ -399,7 +402,9 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
         tooltip=folium.GeoJsonTooltip(
             fields=tooltip_fields,
             aliases=tooltip_aliases,
-            localize=True
+            localize=True,
+            sticky=True,
+            direction="top" 
         )
     ).add_to(m)
 
@@ -428,10 +433,10 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
         color: #111;
         line-height: 1.3;
     ">
-      <div style="font-weight: 600; margin-bottom: 6px;">
-        Keterangan Cluster — {nama_algo}
-      </div>
-      {legenda_item}
+        <div style="font-weight: 600; margin-bottom: 6px;">
+            Keterangan Cluster — {nama_algo}
+        </div>
+        {legenda_item}
     </div>
     """
 

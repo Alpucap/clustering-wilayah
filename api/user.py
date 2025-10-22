@@ -21,3 +21,4 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def get_user_by_id(db: Session, user_id: int):
     return db.query(User).filter(User.user_id == user_id).first()
+

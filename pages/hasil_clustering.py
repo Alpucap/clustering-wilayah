@@ -63,7 +63,7 @@ def show():
         f"Jumlah Anggota per Cluster ({user_input['metode_clustering']})"
     )
 
-    col1, col2 = st.columns([1,2])
+    col1, col2 = st.columns([2,3])
 
     with col1:
         st.pyplot(fig, use_container_width=False)
@@ -89,7 +89,7 @@ def show():
         
     #Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
-
+    st.markdown("<p style='text-align:center; font-size:20px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
     col1, col2 = st.columns(2)
 
     with col1:
@@ -357,7 +357,7 @@ def show():
 
     #Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)
-
+    st.markdown("<p style='text-align:center; font-size:20px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html = True)
     if st.session_state.all_figs:
         col1, col2 = st.columns(2)
 

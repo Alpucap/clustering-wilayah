@@ -60,6 +60,7 @@ def show(cookies=None):
     st.dataframe(df, use_container_width=True)
 
     st.markdown("#### Download Riwayat")
+    st.markdown("<p style='text-align:left; font-size:16px; margin-bottom:24px;'>Riwayat Clustering dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
     col1, col2 = st.columns(2)
 
     with col1:
