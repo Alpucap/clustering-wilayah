@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, analisis_silhouette_per_cluster, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta
-from api.hasil_clustering import fig_to_png_bytes, figs_to_pdf, buat_peta_statis, loader
+from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_tren_tahunan, analisis_silhouette_per_cluster, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta, indikator_deskripsi
+from api.hasil_clustering import fig_to_png_bytes, df_to_fig_table, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
 import io
 import pandas as pd
@@ -89,7 +89,7 @@ def show():
         
     #Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:20px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
     col1, col2 = st.columns(2)
 
     with col1:
@@ -275,11 +275,68 @@ def show():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.pyplot(fig_heatmap, use_container_width=True)
-        
+    
+
+    #Tren fitur tahunan
+    indikator_rendah_bagus = ["P0", "P1", "P2"]
+    tahun_tersedia = df_hasil["Tahun"].nunique()
+    tahun_terbaru = df_hasil["Tahun"].max()
+    top_n = 10  
+
+    if tahun_tersedia > 1:
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+            st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Tren Indikator Per Tahun</p>", unsafe_allow_html=True)
+
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                fitur_dipilih = st.selectbox(
+                    "Pilih indikator yang ingin ditampilkan:",
+                    options=list(indikator_deskripsi.keys()),
+                    format_func=lambda x: indikator_deskripsi.get(x, x)
+                )
+            with col2:
+                top_n = st.number_input(
+                    "Tampilkan berapa wilayah teratas?",
+                    min_value=1,
+                    max_value=df_hasil["Nama Wilayah"].nunique(),
+                    value=10,
+                    step=1
+                )
+
+            ascending = True if fitur_dipilih in indikator_rendah_bagus else False
+            df_tahun_terbaru = df_hasil[df_hasil["Tahun"] == tahun_terbaru]
+
+            ranking = (
+                df_tahun_terbaru[["Nama Wilayah", fitur_dipilih]]
+                .sort_values(by=fitur_dipilih, ascending=ascending)
+                .head(top_n)
+            )
+            wilayah_top = ranking["Nama Wilayah"]
+
+            deskripsi = indikator_deskripsi.get(fitur_dipilih, fitur_dipilih)
+            judul_tren = f"{top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur_dipilih in indikator_rendah_bagus else 'tertinggi'}"
+
+            fig_tren_web = visualisasi_tren_tahunan(
+                df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)],
+                fitur_dipilih,
+                top_n=top_n,
+                judul=judul_tren
+            )
+            st.pyplot(fig_tren_web, use_container_width=True)
+
+            tabel_multi_tahun = (
+                df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
+                .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur_dipilih)
+            )
+            st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n} Kabupaten/Kota</p>", unsafe_allow_html=True)
+            st.dataframe(tabel_multi_tahun, use_container_width=True)
+
+
     #Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
 
-    st.markdown("<p style='text-align:center; font-size:20px; font-weight:bold; margin-top:24px;'>Sebaran Indikator per Cluster</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:20px;'>Sebaran Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
         loader("Sedang membuat scatter indikator...")
@@ -352,12 +409,51 @@ def show():
     if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
         st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
 
+    if tahun_tersedia > 1:
+        for fitur in user_input["fitur_digunakan"]:
+            deskripsi = indikator_deskripsi.get(fitur, fitur)
+            ascending = True if fitur in indikator_rendah_bagus else False
+
+            wilayah_top = (
+                df_hasil[df_hasil["Tahun"] == tahun_terbaru]
+                [["Nama Wilayah", fitur]]
+                .sort_values(by=fitur, ascending=ascending)
+                .head(top_n)["Nama Wilayah"]
+            )
+
+            df_tren_top = df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
+
+            judul_tren = f"{top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n, judul=judul_tren)
+
+            if not any(t == f"Tren {deskripsi}" for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
+
+            tahun_tersedia_list = sorted(df_hasil["Tahun"].unique())
+
+            tabel_multi_tahun = (
+                df_tren_top
+                .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur)
+                .reset_index()
+            )
+
+            available_years = [y for y in tahun_tersedia_list if y in tabel_multi_tahun.columns]
+            tabel_multi_tahun = tabel_multi_tahun[["Nama Wilayah"] + available_years]
+
+            tabel_fig = df_to_fig_table(
+                tabel_multi_tahun,
+                title=f"Tabel {top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+            )
+            if not any(t == f"Tabel Tren {deskripsi}" for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
+
+            
     if 'fig_map_static' in locals() and fig_map_static is not None and not any(t == "Peta Hasil Clustering" for t, _ in st.session_state.all_figs):
         st.session_state.all_figs.append(("Peta Hasil Clustering", fig_map_static))
-
+        
     #Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:20px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html = True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html = True)
     if st.session_state.all_figs:
         col1, col2 = st.columns(2)
 

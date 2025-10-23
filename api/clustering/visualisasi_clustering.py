@@ -11,13 +11,14 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from fuzzywuzzy import process
 import gdown, os, zipfile
 import tempfile
+import matplotlib.ticker as mticker
 
 #Deskripsi Indikator
 indikator_deskripsi = {
-    "AHH_L": "Angka Harapan Hidup Laki-laki",
-    "AHH_P": "Angka Harapan Hidup Perempuan",
+    "AHH_L": "Angka Harapan Hidup Laki-laki (tahun)",
+    "AHH_P": "Angka Harapan Hidup Perempuan (tahun)",
     "RLS":  "Rata-Rata Lama Sekolah (tahun)",
-    "P0":   "Persentase Penduduk Miskin",
+    "P0":   "Persentase Penduduk Miskin (persen)",
     "P1":   "Indeks Kedalaman Kemiskinan",
     "P2":   "Indeks Keparahan Kemiskinan"
 }
@@ -117,7 +118,6 @@ def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
 
     fig.tight_layout()
     fig.subplots_adjust(top=0.85)
-
 
     return ringkasan, fig
 
@@ -255,6 +255,34 @@ def boxgrid_per_cluster(df: pd.DataFrame, variabel, judul: str):
     plt.tight_layout()
     return fig
 
+#Tren indikator per tahun
+def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col="Nama Wilayah", judul=None):
+    if tahun_col not in df.columns or wilayah_col not in df.columns:
+        raise ValueError("Kolom 'Tahun' atau 'Nama Wilayah' tidak ditemukan di dataset.")
+    
+    deskripsi = indikator_deskripsi.get(fitur, fitur)
+    
+    #Ambil top-N wilayah
+    topN = df.groupby(wilayah_col)[fitur].mean().nlargest(top_n).index
+    df_topN = df[df[wilayah_col].isin(topN)]
+    
+    fig, ax = plt.subplots(figsize=(9, 6))
+    for wilayah, subset in df_topN.groupby(wilayah_col):
+        subset_sorted = subset.sort_values(tahun_col)
+        ax.plot(subset_sorted[tahun_col], subset_sorted[fitur], marker="o", label=wilayah)
+    
+    ax.set_title(
+        judul or f"{top_n} Kabupaten/Kota dengan Nilai {deskripsi} Tertinggi",
+        fontsize=13, pad=15
+    )
+    ax.set_xlabel("Tahun")
+    ax.set_ylabel(deskripsi)
+    
+    ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    ax.legend(fontsize=8, bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax.grid(True, linestyle="--", alpha=0.6)
+    plt.tight_layout()
+    return fig
 
 
 #Heatmap korelasi indikator

@@ -23,6 +23,20 @@ def fig_to_png_bytes(fig):
     buf.seek(0)
     return buf.getvalue()
 
+def df_to_fig_table(df, title="Tabel"):
+    fig, ax = plt.subplots(figsize=(8, len(df)*0.4 + 1))
+    ax.axis("off")
+    tbl = ax.table(
+        cellText=df.values,
+        colLabels=df.columns,
+        loc="center"
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(8)
+    tbl.scale(1, 1.2)
+    ax.set_title(title, fontsize=12, pad=10)
+    return fig
+
 #Method untuk mengubah figure menjadi PDF
 def figs_to_pdf(figs, keterangan_analisis=None):
     buf = io.BytesIO()
