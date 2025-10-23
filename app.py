@@ -16,7 +16,6 @@ from database import SessionLocal
 from api import get_user_by_id
 from streamlit_cookies_manager import EncryptedCookieManager
 
-
 def page_loader():
     st.markdown(
         """

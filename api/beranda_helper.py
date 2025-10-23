@@ -1,12 +1,13 @@
 import streamlit as st
 import base64
 
+#Method untuk mengambil gambar
 def get_base64_image(image_file):
     with open(image_file, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
-
+#Method untuk membuat card
 def create_card_section(title, items, columns=3, show_title_in_card=True, show_section_title=True):
         if show_section_title:
             st.markdown(

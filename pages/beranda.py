@@ -15,6 +15,7 @@ def show():
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            background-blend-mode: multiply;
             margin: 0 0 -150px 0;
             padding: 0;
             display: flex;
@@ -27,9 +28,11 @@ def show():
 
         .hero-clustering-overlay {{
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.65);
+            top: 0; 
+            left: 0;
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
         }}
 
         .hero-clustering-content {{
@@ -43,13 +46,14 @@ def show():
             font-weight: bold;
             text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
             margin-bottom: 20px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
         }}
 
         .hero-clustering-content p {{
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             max-width: 800px;
             margin: 0 auto 30px auto;
-            text-shadow: 1px 1px 6px rgba(0,0,0,0.7);
+            text-shadow: 0 4px 12px rgba(0,0,0,0.8);
         }}
         
         div[data-testid="column"]:has(.cta-clustering-button) {{
@@ -63,7 +67,7 @@ def show():
             <div class="hero-clustering-overlay"></div>
             <div class="hero-clustering-content">
                 <h1>PENGELOMPOKAN WILAYAH DI INDONESIA</h1>
-                <p>Clustering Wilayah di Indonesia Menggunakan <b>Intelligent K-Median</b> dan <b>K-Medoids</b></p>
+                <p>Clustering kabupaten dan kota di Indonesia Menggunakan <b>Intelligent K-Median</b> dan <b>K-Medoids</b></p>
             </div>
         </div>
         """,

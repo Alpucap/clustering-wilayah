@@ -16,12 +16,14 @@ analisis_teks = {
     "Peta Hasil Clustering": "Peta menunjukkan distribusi spasial cluster pada wilayah Indonesia, memudahkan analisis geografis."
 }
 
+#Method untuk mengubah figure menjadi bytes
 def fig_to_png_bytes(fig):
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
     return buf.getvalue()
 
+#Method untuk mengubah figure menjadi PDF
 def figs_to_pdf(figs, keterangan_analisis=None):
     buf = io.BytesIO()
     page_w, page_h = landscape(A4)
@@ -58,6 +60,7 @@ def figs_to_pdf(figs, keterangan_analisis=None):
     doc.build(elements)
     return buf.getvalue()
 
+#Method untuk membuat peta statis (untuk pdf)
 def buat_peta_statis(gdf_map, labels, cluster_col="Cluster"):
     fig, ax = plt.subplots(1, 1, figsize=(14, 10))
 
@@ -96,6 +99,7 @@ def buat_peta_statis(gdf_map, labels, cluster_col="Cluster"):
 
     return fig
 
+#Method untuk loader
 def loader(text: str):
     st.markdown(
         f"""

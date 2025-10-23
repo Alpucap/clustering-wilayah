@@ -33,23 +33,56 @@ def show():
         
     st.markdown(
         """
-        <p style='text-align: justify; font-size:16px; padding-left:50px; padding-right:50px;'>
+        <p style='text-align: center; font-size:16px; padding-left:50px; padding-right:50px;'>
         Jika membutuhkan informasi lebih lanjut atau memiliki pertanyaan terkait penggunaan website, 
         Anda dapat menghubungi kami melalui kontak berikut:
         </p>
         """,
         unsafe_allow_html=True
     )
-    
+
     st.markdown(
         """
-        <div style='font-size:16px; padding-left:50px;'>
-        <b>Email:</b> <a href="mailto:alpucaps@gmail.com">alpucaps@gmail.com</a><br>
-        <b>Instagram:</b> <a href="https://instagram.com/hnscns" target="_blank">@hnscns</a>
-        </div>
+        <style>
+        .contact-icon {
+            transition: transform 0.2s ease-in-out;
+            display: inline-block;
+        }
+        .contact-icon:hover {
+            transform: scale(1.15);
+        }
+        </style>
         """,
         unsafe_allow_html=True
     )
 
-
-
+    st.markdown(
+        """
+        <div style='display: flex; justify-content: center; gap: 40px; padding: 20px;'>
+            <a href="mailto:alpucaps@gmail.com" target="_blank" style='text-decoration: none;'>
+                <div style='text-align: center;' class="contact-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" 
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                        stroke-linecap="round" stroke-linejoin="round" style='color: #fafafa;'>
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <p style='margin-top: 8px; color: #f5f5f5; font-size: 14px;'>Email</p>
+                </div>
+            </a>
+            <a href="https://instagram.com/hnscns" target="_blank" style='text-decoration: none;'>
+                <div style='text-align: center;' class="contact-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" 
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                        stroke-linecap="round" stroke-linejoin="round" style='color: #fafafa;'>
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                    <p style='margin-top: 8px; color: #f5f5f5; font-size: 14px;'>Instagram</p>
+                </div>
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
