@@ -344,6 +344,17 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
     gdf["key_join"] = gdf[kolom_nama].apply(normalisasi_nama)
     df_h = df_hasil.copy()
     df_h["key_join"] = df_h["Nama Wilayah"].apply(normalisasi_nama)
+    
+    #Data multi tahun, hitung rata-rata
+    if "Tahun" in df_h.columns and df_h["Tahun"].nunique() > 1:
+        numeric_cols = df_h.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = [c for c in numeric_cols if c != "Cluster"] 
+        
+        agg_dict = {col: 'mean' for col in numeric_cols}
+        agg_dict["Cluster"] = 'first'
+        agg_dict["Nama Wilayah"] = 'first'
+        
+        df_h = df_h.groupby("key_join", as_index=False).agg(agg_dict)
 
     #Mapping manual default (bisa diperluas)
     if mapping_manual is None:
@@ -393,7 +404,6 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
     gdf_gabung["geometry"] = gdf_gabung["geometry"].simplify(0.08, preserve_topology=True)
 
     return gdf_gabung
-
 
 #Peta Folium
 def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, nama_algo: str = "iK-Median", fitur_digunakan=None):

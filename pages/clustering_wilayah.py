@@ -94,13 +94,20 @@ def show():
             )
 
         if file_dataset is not None:
-            try:
-                df_clustering_wilayah = load_dataset(file_dataset)
-                validate_dataset(df_clustering_wilayah)
-                st.success("Dataset berhasil dimuat!")
-            except Exception as e:
-                st.error(f"Dataset tidak valid: {e}")
-                df_clustering_wilayah = None
+                    try:
+                        df_clustering_wilayah = load_dataset(file_dataset)
+                        
+                        missing_count = df_clustering_wilayah.isnull().sum().sum()
+                        if missing_count > 0:
+                            st.error(f"Dataset tidak valid: terdapat {missing_count} data kosong. Pastikan semua sel terisi lengkap.")
+                            df_clustering_wilayah = None
+                        else:
+                            validate_dataset(df_clustering_wilayah)
+                            st.success("Dataset berhasil dimuat!")
+                            
+                    except Exception as e:
+                        st.error(f"Dataset tidak valid: {e}")
+                        df_clustering_wilayah = None
     else:
         df_clustering_wilayah = pd.read_excel("assets/files/Dataset_Clustering_Wilayah.xlsx")
 
@@ -169,7 +176,11 @@ def show():
             default=["Angka Harapan Hidup Laki-Laki (AHH_L)", "Angka Harapan Hidup Perempuan (AHH_P)"]
         )
 
-    fitur_digunakan = [mapping_fitur[label] for label in fitur_labels]
+    if len(fitur_labels) == 0:
+        st.error("Fitur wajib dipilih! Silakan pilih minimal satu fitur untuk clustering.")
+        fitur_digunakan = []
+    else:
+        fitur_digunakan = [mapping_fitur[label] for label in fitur_labels]
 
     #Pilih Tahun
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Tahun</p>", unsafe_allow_html=True)
@@ -226,7 +237,7 @@ def show():
 
     #Filter dan Select Dataset
     df_clustering_filtered = None
-    if df_clustering_wilayah is not None:
+    if df_clustering_wilayah is not None and len(fitur_digunakan) > 0:
         try:
             df_clustering_filtered = filter_and_select_data(
                 df_clustering_wilayah,
@@ -238,7 +249,7 @@ def show():
             st.error(f"Gagal memfilter dataset: {e}")
     
     #Ringkasan Pilihan User
-    if df_clustering_filtered is not None:
+    if df_clustering_filtered is not None and len(fitur_digunakan) > 0:
         st.markdown("---")
         st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Ringkasan Pilihan Analisis</p>", unsafe_allow_html=True)
         fitur_display_html = "".join([f"<li>{label}</li>" for label in fitur_labels])
@@ -280,51 +291,48 @@ def show():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.button("Jalankan Clustering", use_container_width=True):
-                if df_clustering_filtered is None:
-                    st.error("Dataset belum siap. Pastikan file valid dan tahun/fitur sudah dipilih.")
-                else:
-                    result = run_clustering(df_clustering_filtered, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak)
-                    
-                    df_with_cluster = df_clustering_filtered.copy()
-                    df_with_cluster["Cluster"] = result["df_hasil"]["Cluster"].values
-                    
-                    if "user_id" in st.session_state:
-                        with SessionLocal() as db:
-                            log = ActivityLog(
-                                user_id=int(st.session_state["user_id"]),
-                                metode_clustering=metode_clustering,
-                                fitur_digunakan=fitur_labels,
-                                tahun_awal=int(tahun_awal),
-                                tahun_akhir=int(tahun_akhir),
-                                jumlah_cluster=int(jumlah_cluster) if jumlah_cluster is not None else None,
-                                metrik_jarak=metrik_jarak,
-                                silhouette=str(result["silhouette"]),
-                                dbi=str(result["dbi"]),
-                                waktu_komputasi=str(result["waktu_komputasi"])
-                            )
-                            db.add(log)
-                            db.commit()
-                    
-                    st.session_state.page = "hasil_clustering"
-                    st.session_state.user_input = {
-                        "dataset": result["df_processed"],    
-                        "df_hasil": df_with_cluster,
-                        "labels": result["labels"],         
-                        "centroids": result["centroids"],    
-                        "fitur_digunakan": fitur_digunakan,
-                        "metode_clustering": metode_clustering,
-                        "tahun_awal": tahun_awal,
-                        "tahun_akhir": tahun_akhir,
-                        "jumlah_k": jumlah_cluster,
-                        "metrik_jarak": metrik_jarak,
-                        "null_summary": result["null_summary"],
-                        "jumlah_outlier": result["jumlah_outlier"],
-                        "df_outliers": result["df_outliers"],
-                        "dbi": result["dbi"],        
-                        "silhouette": result["silhouette"],
-                        "waktu_komputasi": result["waktu_komputasi"]
-                    }
-                    st.session_state["loading"] = True
-                    st.rerun()
-                    return 
-
+                
+                result = run_clustering(df_clustering_filtered, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak)
+                
+                df_with_cluster = df_clustering_filtered.copy()
+                df_with_cluster["Cluster"] = result["df_hasil"]["Cluster"].values
+                
+                if "user_id" in st.session_state:
+                    with SessionLocal() as db:
+                        log = ActivityLog(
+                            user_id=int(st.session_state["user_id"]),
+                            metode_clustering=metode_clustering,
+                            fitur_digunakan=fitur_labels,
+                            tahun_awal=int(tahun_awal),
+                            tahun_akhir=int(tahun_akhir),
+                            jumlah_cluster=int(jumlah_cluster) if jumlah_cluster is not None else None,
+                            metrik_jarak=metrik_jarak,
+                            silhouette=str(result["silhouette"]),
+                            dbi=str(result["dbi"]),
+                            waktu_komputasi=str(result["waktu_komputasi"])
+                        )
+                        db.add(log)
+                        db.commit()
+                
+                st.session_state.page = "hasil_clustering"
+                st.session_state.user_input = {
+                    "dataset": result["df_processed"],    
+                    "df_hasil": df_with_cluster,
+                    "labels": result["labels"],         
+                    "centroids": result["centroids"],    
+                    "fitur_digunakan": fitur_digunakan,
+                    "metode_clustering": metode_clustering,
+                    "tahun_awal": tahun_awal,
+                    "tahun_akhir": tahun_akhir,
+                    "jumlah_k": jumlah_cluster,
+                    "metrik_jarak": metrik_jarak,
+                    "null_summary": result["null_summary"],
+                    "jumlah_outlier": result["jumlah_outlier"],
+                    "df_outliers": result["df_outliers"],
+                    "dbi": result["dbi"],        
+                    "silhouette": result["silhouette"],
+                    "waktu_komputasi": result["waktu_komputasi"]
+                }
+                st.session_state["loading"] = True
+                st.rerun()
+                return

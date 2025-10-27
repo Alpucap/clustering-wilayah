@@ -18,7 +18,7 @@ def iterasi_k_medoids(data_matriks, jumlah_cluster, metrik_jarak="euclidean", ma
     distance_matrix = cdist(data_matriks, data_matriks, metric=metrik_jarak)
 
     #Init medoid acak
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(42) #Random state 42 biar hasil stabil
     medoids = rng.choice(n, jumlah_cluster, replace=False)
 
     #Assign awal & cost awal

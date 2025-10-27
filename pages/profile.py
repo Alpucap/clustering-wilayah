@@ -3,6 +3,7 @@ from database import SessionLocal
 from api import get_user_by_id, get_user_by_username
 from sqlalchemy.orm import Session
 from datetime import datetime
+import time
 
 def show(cookies):
     
@@ -53,20 +54,26 @@ def show(cookies):
     #Logout dan Delete Account
     col1, col2 = st.columns([3, 1])
 
+    logout_clicked = False
+    delete_account = False
+
     with col1:
         if st.button("Logout", use_container_width=True):
-            st.session_state.clear()
-            cookies["user_id"] = ""
-            cookies["username"] = ""
-            cookies.save()
-
-            st.success("Anda telah logout.")
-            st.session_state.page = "login"
-            st.rerun()
+            logout_clicked = True
 
     with col2:
         if st.button("Hapus Akun", use_container_width=True):
             st.session_state.show_delete_confirmation = True
+
+    if logout_clicked:
+        st.success("Logout berhasil")
+        time.sleep(1)
+        st.session_state.clear()
+        cookies["user_id"] = ""
+        cookies["username"] = ""
+        cookies.save()
+        st.session_state.page = "login"
+        st.rerun()
 
     #Delete Confirmation
     if st.session_state.get('show_delete_confirmation', False):
@@ -81,21 +88,25 @@ def show(cookies):
             if st.button("Batal", use_container_width=True):
                 st.session_state.show_delete_confirmation = False
                 st.rerun()
-
+        
         with col2:
             if st.button("Ya, Hapus", type="primary", disabled=not confirm, use_container_width=True):
-                db.delete(user)
-                db.commit()
-                st.session_state.clear()
+                delete_account = True
 
-                cookies["user_id"] = ""
-                cookies["username"] = ""
-                cookies.save()
-
-                st.session_state.show_delete_confirmation = False
-                st.success("Akun berhasil dihapus.")
-                st.session_state.page = "register"
-                st.rerun()
+    if delete_account:
+        st.success("Akun berhasil dihapus.")
+        time.sleep(1.5) 
+        
+        db.delete(user)
+        db.commit()
+        st.session_state.clear()
+        
+        cookies["user_id"] = ""
+        cookies["username"] = ""
+        cookies.save()
+        
+        st.session_state.page = "register"
+        st.rerun()
 
     if 'show_delete_confirmation' not in st.session_state:
         st.session_state.show_delete_confirmation = False
