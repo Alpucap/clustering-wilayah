@@ -7,6 +7,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, PageBreak, Image
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from PIL import Image as PILImage
+from pandas.plotting import table
 
 analisis_teks = {
     "Silhouette Plot": "Plot ini menunjukkan kualitas pemisahan cluster. Nilai mendekati 1 artinya cluster lebih baik.",
@@ -23,19 +24,17 @@ def fig_to_png_bytes(fig):
     buf.seek(0)
     return buf.getvalue()
 
+#Method untuk mengubah dataframe menjadi figure
 def df_to_fig_table(df, title="Tabel"):
-    fig, ax = plt.subplots(figsize=(8, len(df)*0.4 + 1))
+    fig, ax = plt.subplots(figsize=(10, len(df)*0.4 + 1))
     ax.axis("off")
-    tbl = ax.table(
-        cellText=df.values,
-        colLabels=df.columns,
-        loc="center"
-    )
-    tbl.auto_set_font_size(False)
-    tbl.set_fontsize(8)
-    tbl.scale(1, 1.2)
+
+    df_reset = df.reset_index(drop=True)
+
+    table(ax, df_reset, loc="center", colWidths=[0.3] + [0.1]*(len(df_reset.columns)-1))
     ax.set_title(title, fontsize=12, pad=10)
     return fig
+
 
 #Method untuk mengubah figure menjadi PDF
 def figs_to_pdf(figs, keterangan_analisis=None):

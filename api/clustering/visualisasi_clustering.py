@@ -262,12 +262,16 @@ def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col
     
     deskripsi = indikator_deskripsi.get(fitur, fitur)
     
-    #Ambil top-N wilayah
-    topN = df.groupby(wilayah_col)[fitur].mean().nlargest(top_n).index
-    df_topN = df[df[wilayah_col].isin(topN)]
+    df_topN = df.copy()
+    
+    tahun_max = df_topN[tahun_col].max()
+    df_tahun_max = df_topN[df_topN[tahun_col] == tahun_max]
+    urutan_wilayah = df_tahun_max.sort_values(fitur, ascending=False)[wilayah_col].tolist()
     
     fig, ax = plt.subplots(figsize=(9, 6))
-    for wilayah, subset in df_topN.groupby(wilayah_col):
+    
+    for wilayah in urutan_wilayah:
+        subset = df_topN[df_topN[wilayah_col] == wilayah]
         subset_sorted = subset.sort_values(tahun_col)
         ax.plot(subset_sorted[tahun_col], subset_sorted[fitur], marker="o", label=wilayah)
     

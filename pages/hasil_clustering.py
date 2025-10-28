@@ -296,13 +296,14 @@ def show():
                     format_func=lambda x: indikator_deskripsi.get(x, x)
                 )
             with col2:
-                top_n = st.number_input(
+                top_n_input = st.number_input(
                     "Tampilkan berapa wilayah teratas?",
                     min_value=1,
                     max_value=df_hasil["Nama Wilayah"].nunique(),
                     value=10,
                     step=1
                 )
+                st.session_state.top_n_for_pdf = top_n_input
 
             ascending = True if fitur_dipilih in indikator_rendah_bagus else False
             df_tahun_terbaru = df_hasil[df_hasil["Tahun"] == tahun_terbaru]
@@ -310,17 +311,17 @@ def show():
             ranking = (
                 df_tahun_terbaru[["Nama Wilayah", fitur_dipilih]]
                 .sort_values(by=fitur_dipilih, ascending=ascending)
-                .head(top_n)
+                .head(top_n_input) 
             )
             wilayah_top = ranking["Nama Wilayah"]
 
             deskripsi = indikator_deskripsi.get(fitur_dipilih, fitur_dipilih)
-            judul_tren = f"{top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur_dipilih in indikator_rendah_bagus else 'tertinggi'}"
+            judul_tren = f"{top_n_input} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur_dipilih in indikator_rendah_bagus else 'tertinggi'}"
 
             fig_tren_web = visualisasi_tren_tahunan(
                 df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)],
                 fitur_dipilih,
-                top_n=top_n,
+                top_n=top_n_input,  
                 judul=judul_tren
             )
             st.pyplot(fig_tren_web, use_container_width=True)
@@ -329,7 +330,11 @@ def show():
                 df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
                 .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur_dipilih)
             )
-            st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n} Kabupaten/Kota</p>", unsafe_allow_html=True)
+            
+            tahun_terbaru = tabel_multi_tahun.columns.max()
+            tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru, ascending=ascending)
+
+            st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n_input} Kabupaten/Kota</p>", unsafe_allow_html=True)
             st.dataframe(tabel_multi_tahun, use_container_width=True)
 
 
@@ -409,6 +414,8 @@ def show():
     if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
         st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
 
+    top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
+
     if tahun_tersedia > 1:
         for fitur in user_input["fitur_digunakan"]:
             deskripsi = indikator_deskripsi.get(fitur, fitur)
@@ -418,13 +425,13 @@ def show():
                 df_hasil[df_hasil["Tahun"] == tahun_terbaru]
                 [["Nama Wilayah", fitur]]
                 .sort_values(by=fitur, ascending=ascending)
-                .head(top_n)["Nama Wilayah"]
+                .head(top_n_pdf)["Nama Wilayah"] 
             )
 
             df_tren_top = df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
 
-            judul_tren = f"{top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
-            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n, judul=judul_tren)
+            judul_tren = f"{top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren)
 
             if not any(t == f"Tren {deskripsi}" for t, _ in st.session_state.all_figs):
                 st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
@@ -440,9 +447,12 @@ def show():
             available_years = [y for y in tahun_tersedia_list if y in tabel_multi_tahun.columns]
             tabel_multi_tahun = tabel_multi_tahun[["Nama Wilayah"] + available_years]
 
+            tahun_terbaru_col = available_years[-1] 
+            tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru_col, ascending=ascending)
+
             tabel_fig = df_to_fig_table(
                 tabel_multi_tahun,
-                title=f"Tabel {top_n} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+                title=f"Tabel {top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
             )
             if not any(t == f"Tabel Tren {deskripsi}" for t, _ in st.session_state.all_figs):
                 st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
