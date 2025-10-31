@@ -292,7 +292,7 @@ def show():
             with col1:
                 fitur_dipilih = st.selectbox(
                     "Pilih indikator yang ingin ditampilkan:",
-                    options=list(indikator_deskripsi.keys()),
+                    options=user_input["fitur_digunakan"],
                     format_func=lambda x: indikator_deskripsi.get(x, x)
                 )
             with col2:
@@ -417,7 +417,9 @@ def show():
     top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
 
     if tahun_tersedia > 1:
-        for fitur in user_input["fitur_digunakan"]:
+        fitur_tersedia = [f for f in user_input["fitur_digunakan"] if f in df_hasil.columns]
+        
+        for fitur in fitur_tersedia:
             deskripsi = indikator_deskripsi.get(fitur, fitur)
             ascending = True if fitur in indikator_rendah_bagus else False
 

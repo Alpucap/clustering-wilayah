@@ -9,14 +9,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from PIL import Image as PILImage
 from pandas.plotting import table
 
-analisis_teks = {
-    "Silhouette Plot": "Plot ini menunjukkan kualitas pemisahan cluster. Nilai mendekati 1 artinya cluster lebih baik.",
-    "Sebaran Indikator": "Scatter plot memperlihatkan distribusi indikator antar cluster, terlihat pola pemisahan antar wilayah.",
-    "Boxplot Indikator": "Boxplot menampilkan variasi indikator dalam tiap cluster, sehingga bisa dibandingkan antar cluster.",
-    "Heatmap Korelasi": "Heatmap menggambarkan hubungan antar variabel. Korelasi positif ditunjukkan warna merah, negatif warna biru.",
-    "Peta Hasil Clustering": "Peta menunjukkan distribusi spasial cluster pada wilayah Indonesia, memudahkan analisis geografis."
-}
-
 #Method untuk mengubah figure menjadi bytes
 def fig_to_png_bytes(fig):
     buf = io.BytesIO()

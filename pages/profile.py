@@ -6,7 +6,6 @@ from datetime import datetime
 import time
 
 def show(cookies):
-    
     #Validasi
     if "user_id" not in st.session_state:
         st.warning("Anda harus login terlebih dahulu.")

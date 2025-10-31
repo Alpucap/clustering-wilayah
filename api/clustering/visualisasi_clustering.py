@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -205,7 +204,7 @@ def analisis_silhouette_per_cluster(X, labels):
         hasil[c] = np.mean(nilai_sample[labels == c])
     return hasil
 
-#Visualisasi Sebaran (pairplot)
+# Visualisasi Sebaran (pairplot)
 def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan, algo: str = ""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if not kolom:
@@ -219,8 +218,16 @@ def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan,
         plot_kws={"alpha": 0.7, "s": 30}
     )
     g.figure.suptitle(f"Scatter Matrix per Cluster ({algo})", y=1.02)
-    return g
 
+    for ax in g.axes[-1, :]:
+        ax.set_xlabel(ax.get_xlabel(), rotation=15, ha='center')
+        ax.xaxis.labelpad = 8 
+
+    for ax in g.axes[:, 0]:
+        ax.set_ylabel(ax.get_ylabel(), rotation=0, ha='right')
+        ax.yaxis.labelpad = 8
+
+    return g
 
 
 #Boxplot distribusi indikator per cluster
