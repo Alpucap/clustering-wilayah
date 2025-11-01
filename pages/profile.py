@@ -10,7 +10,8 @@ def show(cookies):
     if "user_id" not in st.session_state:
         st.warning("Anda harus login terlebih dahulu.")
         return
-
+    
+    #Get User Data dari Database dengan user_id
     db: Session = SessionLocal()
     user = get_user_by_id(db, st.session_state["user_id"])
 

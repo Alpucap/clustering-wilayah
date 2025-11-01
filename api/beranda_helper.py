@@ -1,5 +1,6 @@
 import streamlit as st
 import base64
+import json
 
 #Method untuk mengambil gambar
 def get_base64_image(image_file):
@@ -52,3 +53,9 @@ def create_card_section(title, items, columns=3, show_title_in_card=True, show_s
                                 )
         
         st.markdown("<div style='margin-bottom:20px;'></div>", unsafe_allow_html=True)
+
+#Method untuk load data dari json
+@st.cache_data
+def load_card_data():
+    with open("assets/data/beranda_cards.json", "r", encoding="utf-8") as f:
+        return json.load(f)

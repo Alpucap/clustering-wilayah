@@ -42,10 +42,6 @@ def check_outlier(df, features):
 
 #Method untuk normalisasi data menggunakan Min-Max Normalization
 def normalize_data(df, features):
-    """
-    Normalisasi data numerik menggunakan Min-Max Scaling (0–1).
-    Return: DataFrame copy dengan fitur yang sudah ternormalisasi.
-    """
     scaler = MinMaxScaler()
     df_normalized = df.copy()
     df_normalized[features] = scaler.fit_transform(df_normalized[features])

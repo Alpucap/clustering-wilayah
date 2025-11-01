@@ -38,6 +38,7 @@ def show():
         """,
         unsafe_allow_html=True
     )
+    
     #Pilihan sumber dataset
     dataset_option = st.radio(
         "Pilih sumber dataset:",
@@ -148,13 +149,7 @@ def show():
         ["Angka Harapan Hidup Laki-Laki (AHH_L)", "Angka Harapan Hidup Perempuan (AHH_P)", "Persentase Penduduk Miskin (P0)", "Indeks Kedalaman Kemiskinan (P1)", "Indeks Keparahan Kemiskinan (P2)"],
         ["Rata-rata Lama Sekolah (RLS)", "Persentase Penduduk Miskin (P0)", "Indeks Kedalaman Kemiskinan (P1)", "Indeks Keparahan Kemiskinan (P2)"],
         ["Angka Harapan Hidup Laki-Laki (AHH_L)", "Angka Harapan Hidup Perempuan (AHH_P)"],
-        ["Persentase Penduduk Miskin (P0)", "Indeks Kedalaman Kemiskinan (P1)", "Indeks Keparahan Kemiskinan (P2)"],
-        ["Rata-rata Lama Sekolah (RLS)"],
-        ["Angka Harapan Hidup Laki-Laki (AHH_L)"],
-        ["Angka Harapan Hidup Perempuan (AHH_P)"],
-        ["Persentase Penduduk Miskin (P0)"],
-        ["Indeks Kedalaman Kemiskinan (P1)"],
-        ["Indeks Keparahan Kemiskinan (P2)"],
+        ["Persentase Penduduk Miskin (P0)", "Indeks Kedalaman Kemiskinan (P1)", "Indeks Keparahan Kemiskinan (P2)"]
     ]
     
     st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Fitur</p>", unsafe_allow_html=True)
@@ -199,7 +194,6 @@ def show():
     else:
         st.warning("Silakan unggah dataset terlebih dahulu untuk memilih tahun.")
         tahun_awal, tahun_akhir = None, None
-
 
     #Pilih Jumlah Cluster
     if metode_clustering == "K-Medoids":

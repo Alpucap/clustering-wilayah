@@ -11,6 +11,7 @@ from fuzzywuzzy import process
 import gdown, os, zipfile
 import tempfile
 import matplotlib.ticker as mticker
+from itertools import combinations
 
 #Deskripsi Indikator
 indikator_deskripsi = {
@@ -23,27 +24,27 @@ indikator_deskripsi = {
 }
 
 #Skema Label Cluster & Deskripsi
-skema_label = {
-    2:  ["Sejahtera", "Tertinggal"],
-    3:  ["Sejahtera", "Menengah", "Tertinggal"],
-    4:  ["Sejahtera", "Menengah Atas", "Menengah Bawah", "Tertinggal"],
-    5:  ["Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Tertinggal"],
-    6:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah Bawah", "Rentan", "Tertinggal"],
-}
+# skema_label = {
+#     2:  ["Sejahtera", "Tertinggal"],
+#     3:  ["Sejahtera", "Menengah", "Tertinggal"],
+#     4:  ["Sejahtera", "Menengah Atas", "Menengah Bawah", "Tertinggal"],
+#     5:  ["Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Tertinggal"],
+#     6:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah Bawah", "Rentan", "Tertinggal"],
+# }
 
-deskripsi_label = {
-    "Sejahtera": "AHH & RLS tinggi; P0/P1/P2 rendah.",
-    "Cukup Sejahtera": "Mendekati sejahtera; kemiskinan rendah–sedang.",
-    "Menengah Atas": "Di atas rata-rata; kemiskinan terkendali.",
-    "Menengah": "Sekitar rata-rata pada semua indikator.",
-    "Menengah Bawah": "Sedikit di bawah rata-rata; kemiskinan menengah.",
-    "Rentan": "Indikator positif rendah; kemiskinan tinggi.",
-    "Tertinggal": "AHH & RLS rendah; P0/P1/P2 tinggi.",
-}
+# deskripsi_label = {
+#     "Sejahtera": "AHH & RLS tinggi; P0/P1/P2 rendah.",
+#     "Cukup Sejahtera": "Mendekati sejahtera; kemiskinan rendah–sedang.",
+#     "Menengah Atas": "Di atas rata-rata; kemiskinan terkendali.",
+#     "Menengah": "Sekitar rata-rata pada semua indikator.",
+#     "Menengah Bawah": "Sedikit di bawah rata-rata; kemiskinan menengah.",
+#     "Rentan": "Indikator positif rendah; kemiskinan tinggi.",
+#     "Tertinggal": "AHH & RLS rendah; P0/P1/P2 tinggi.",
+# }
 
-def ambil_skema_label(jumlah_k: int):
-    """Ambil daftar label cluster berdasarkan jumlah K."""
-    return skema_label.get(jumlah_k, [f"Cluster {i+1}" for i in range(jumlah_k)])
+# def ambil_skema_label(jumlah_k: int):
+#     """Ambil daftar label cluster berdasarkan jumlah K."""
+#     return skema_label.get(jumlah_k, [f"Cluster {i+1}" for i in range(jumlah_k)])
 
 
 #Analisis Cluster
@@ -77,8 +78,8 @@ def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
     urutan = ranking.index.tolist()
     k = len(ranking)
 
-    skema = ambil_skema_label(k)
-    label_cluster = {urutan[i]: skema[i] for i in range(k)}
+    # Label cluster sederhana tanpa deskripsi
+    label_cluster = {c: f"Cluster {c}" for c in urutan}
     print("Label cluster:", label_cluster, "\n")
 
     return rata_c, label_cluster, skor
@@ -138,6 +139,15 @@ def visualisasi_evaluasi(df_eval: pd.DataFrame):
     plt.tight_layout()
     return fig
 
+def get_kategori_silhouette(score):
+    if score >= 0.71:
+        return "Struktur Kuat", "#28a745", "Cluster terpisah dengan sangat baik"
+    elif score >= 0.51:
+        return "Struktur Sedang", "#ffc107", "Cluster cukup terpisah"
+    elif score >= 0.26:
+        return "Struktur Lemah", "#fd7e14", "Cluster kurang terpisah"
+    else:
+        return "Tidak Ada Struktur", "#dc3545", "Cluster tidak membentuk struktur yang jelas"
 
 #Visualisasi Silhouette
 def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndarray, algo: str = ""):
@@ -204,63 +214,97 @@ def analisis_silhouette_per_cluster(X, labels):
         hasil[c] = np.mean(nilai_sample[labels == c])
     return hasil
 
-# Visualisasi Sebaran (pairplot)
-def visualisasi_sebaran_cluster_per_indikator(df: pd.DataFrame, fitur_digunakan, algo: str = ""):
+#Visualisasi Sebaran (pairplot)
+def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if not kolom:
         raise ValueError("Tidak ada fitur valid untuk divisualisasikan.")
-
-    df_plot = df.rename(columns={k: indikator_deskripsi.get(k, k) for k in kolom})
-    kolom_jelas = [indikator_deskripsi.get(k, k) for k in kolom]
-
-    g = sns.pairplot(
-        df_plot, vars=kolom_jelas, hue="Cluster", diag_kind="kde",
-        plot_kws={"alpha": 0.7, "s": 30}
-    )
-    g.figure.suptitle(f"Scatter Matrix per Cluster ({algo})", y=1.02)
-
-    for ax in g.axes[-1, :]:
-        ax.set_xlabel(ax.get_xlabel(), rotation=15, ha='center')
-        ax.xaxis.labelpad = 8 
-
-    for ax in g.axes[:, 0]:
-        ax.set_ylabel(ax.get_ylabel(), rotation=0, ha='right')
-        ax.yaxis.labelpad = 8
-
-    return g
-
-
-#Boxplot distribusi indikator per cluster
-def boxgrid_per_cluster(df: pd.DataFrame, variabel, judul: str):
-    df = df.copy()
-    df["Cluster"] = df["Cluster"].astype(int)
-
-    mapping = {k: indikator_deskripsi.get(k, k) for k in variabel}
-    df_plot = df.rename(columns=mapping)
-    variabel_jelas = [mapping.get(v, v) for v in variabel]
-
-    n_vars = len(variabel_jelas)
-    n_cols = 3
-    n_rows = (n_vars + n_cols - 1) // n_cols
-
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5*n_cols, 4*n_rows))
-    axes = axes.flatten()
-
-    for i, var in enumerate(variabel_jelas):
-        if var not in df_plot.columns:
-            continue
+    
+    df_plot = df.copy()
+    df_plot["Cluster"] = df_plot["Cluster"].astype(int)
+    
+    figures = []
+    
+    for fitur in kolom:
+        fig, ax = plt.subplots(figsize=(5.5, 4))
+        deskripsi = indikator_deskripsi.get(fitur, fitur)
+        
         sns.boxplot(
-            data=df_plot, x="Cluster", y=var, hue="Cluster",
-            palette="Set2", legend=False, ax=axes[i]
+            data=df_plot, x="Cluster", y=fitur, hue="Cluster",
+            palette="Set2", legend=False, ax=ax
         )
-        axes[i].set_title(var)
+        
+        ax.set_xlabel("Cluster", fontsize=10)
+        ax.set_ylabel(deskripsi, fontsize=10)
+        ax.set_title(f"Boxplot {deskripsi}", fontsize=11, pad=10)
+        ax.grid(True, alpha=0.3, axis='y')
+        
+        plt.tight_layout()
+        figures.append((f"Boxplot {deskripsi}", fig))
+    
+    return figures
 
-    for j in range(len(variabel_jelas), len(axes)):
-        fig.delaxes(axes[j])
 
-    fig.suptitle(judul, y=1.02, fontsize=12)
-    plt.tight_layout()
-    return fig
+def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
+    """
+    Membuat scatterplot untuk setiap pasangan indikator
+    Mengembalikan list of figures yang terpisah
+    """
+    kolom = [c for c in fitur_digunakan if c in df.columns]
+    if len(kolom) < 2:
+        raise ValueError("Minimal 2 fitur diperlukan untuk scatterplot.")
+    
+    pasangan = list(combinations(kolom, 2))
+    
+    figures = []
+    
+    for fitur_x, fitur_y in pasangan:
+        fig, ax = plt.subplots(figsize=(5.5, 4))
+        deskripsi_x = indikator_deskripsi.get(fitur_x, fitur_x)
+        deskripsi_y = indikator_deskripsi.get(fitur_y, fitur_y)
+        
+        for cluster in sorted(df["Cluster"].unique()):
+            data_cluster = df[df["Cluster"] == cluster]
+            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], alpha=0.6, s=30, label=f"Cluster {cluster}")
+        
+        ax.set_xlabel(deskripsi_x, fontsize=10)
+        ax.set_ylabel(deskripsi_y, fontsize=10)
+        ax.set_title(f"{deskripsi_x} vs {deskripsi_y}", fontsize=11, pad=10)
+        ax.legend(fontsize=9, loc='best')
+        ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        figures.append((f"Scatter {deskripsi_x} vs {deskripsi_y}", fig))
+    
+    return figures
+
+
+#Fungsi helper untuk menampilkan figures dalam grid di Streamlit
+def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
+    n_figs = len(figures)
+    
+    idx = 0
+    while idx < n_figs:
+        remaining = n_figs - idx
+        cols_in_row = min(n_cols, remaining)
+
+        cols = st.columns(n_cols)
+
+        if cols_in_row < n_cols:
+            empty_cols = n_cols - cols_in_row
+            offset = empty_cols // 2
+            
+            for i in range(cols_in_row):
+                with cols[offset + i]:
+                    title, fig = figures[idx]
+                    st.pyplot(fig, use_container_width=True)
+                    idx += 1
+        else:
+            for i in range(n_cols):
+                with cols[i]:
+                    title, fig = figures[idx]
+                    st.pyplot(fig, use_container_width=True)
+                    idx += 1
 
 #Tren indikator per tahun
 def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col="Nama Wilayah", judul=None):
@@ -457,12 +501,11 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
         )
     ).add_to(m)
 
-    #Legend
     legenda_item = "".join([
         f'<div style="display:flex;align-items:center;margin-bottom:4px;">'
         f'<span style="display:inline-block;width:15px;height:15px;'
         f'background:{warna_cluster[c]};margin-right:8px;border:1px solid #777;"></span>'
-        f'<span>Cluster {c}: {label_cluster.get(c, "Tidak Diketahui")}</span>'
+        f'<span>Cluster {c}</span>'
         f'</div>'
         for c in sorted(warna_cluster.keys())
     ])
@@ -491,4 +534,3 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
 
     m.get_root().html.add_child(folium.Element(legenda_html))
     return m
-

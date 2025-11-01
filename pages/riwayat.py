@@ -12,11 +12,13 @@ from reportlab.lib.units import cm
 
 def show(cookies=None):
     st.markdown("<h2 style='text-align: center;'>Riwayat Aktivitas</h2>", unsafe_allow_html=True)
-
+    
+    #Validasi user harus login
     if "user_id" not in st.session_state:
         st.warning("Silakan login untuk melihat riwayat aktivitas.")
         return
-
+    
+    #Get riwayat aktivitas
     with SessionLocal() as db:
         logs = (
             db.query(ActivityLog)
@@ -24,11 +26,13 @@ def show(cookies=None):
             .order_by(ActivityLog.created_at.desc())
             .all()
         )
-
+    
+    #Validasi jika belum ada riwayat
     if not logs:
         st.info("Belum ada riwayat aktivitas.")
         return
-
+    
+    #Table Riwayat Clustering
     data = []
     for log in logs:
         fitur = log.fitur_digunakan
@@ -58,7 +62,8 @@ def show(cookies=None):
     df = pd.DataFrame(data)
 
     st.dataframe(df, use_container_width=True)
-
+    
+    #Download Riwayat Clustering
     st.markdown("#### Download Riwayat")
     st.markdown("<p style='text-align:left; font-size:16px; margin-bottom:24px;'>Riwayat Clustering dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
     col1, col2 = st.columns(2)
@@ -138,7 +143,7 @@ def show(cookies=None):
         table.setStyle(style)
 
         doc.build([table])
-
+        
         st.download_button(
             label="Download PDF",
             data=pdf_buffer.getvalue(),

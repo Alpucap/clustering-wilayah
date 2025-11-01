@@ -5,24 +5,33 @@ from api.login_validator import validate_login_fields
 
 def show(cookies):
     st.markdown("<h1 style='text-align:center;font-weight:bold;'>Selamat Datang Kembali</h1>", unsafe_allow_html=True)
-
+    
+    #Validasi
+    #Validasi jika user sudah login, tampilkan pesan sudah login
     if "user_id" in st.session_state:
         st.info(f"Anda sudah login sebagai {st.session_state['username']}")
         return
-
+    
+    #Validasi jika user belum login, tampilkan form login
     if 'login_field_errors' not in st.session_state:
         st.session_state.login_field_errors = {}
-
-    email = st.text_input("Email *", placeholder="Masukkan email Anda")
+    
+    #Validasi Email
     if 'email' in st.session_state.login_field_errors:
         st.markdown(f"<p style='color:red;font-size:14px;margin-top:-10px;'>{st.session_state.login_field_errors['email']}</p>", unsafe_allow_html=True)
-
-    password = st.text_input("Password *", type="password", placeholder="Masukkan password Anda")
+    
+    #Validasi Password
     if 'password' in st.session_state.login_field_errors:
         st.markdown(f"<p style='color:red;font-size:14px;margin-top:-10px;'>{st.session_state.login_field_errors['password']}</p>", unsafe_allow_html=True)
-
+    
+    #Form Login
+    #Email
+    email = st.text_input("Email *", placeholder="Masukkan email Anda")
+    #Password
+    password = st.text_input("Password *", type="password", placeholder="Masukkan password Anda")
+    
+    #Login
     st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
-
     if st.button("Login", use_container_width=True):
         db = SessionLocal()
         errors = validate_login_fields(email, password, db)

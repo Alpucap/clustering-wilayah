@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_tren_tahunan, analisis_silhouette_per_cluster, visualisasi_sebaran_cluster_per_indikator, boxgrid_per_cluster, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta, indikator_deskripsi
+from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_tren_tahunan, analisis_silhouette_per_cluster, get_kategori_silhouette, visualisasi_scatter_per_pasangan_terpisah, tampilkan_figures_dalam_grid, visualisasi_boxplot_per_indikator_terpisah, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta, indikator_deskripsi
 from api.hasil_clustering import fig_to_png_bytes, df_to_fig_table, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
 import io
@@ -10,8 +10,15 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 import zipfile
+import matplotlib.pyplot as plt
 
 def show():
+    #Inisialisasi
+    
+    #Download Visualisasi Clustering
+    if "all_figs" not in st.session_state:
+        st.session_state.all_figs = []
+        
     #Title
     st.markdown(
         """
@@ -69,7 +76,7 @@ def show():
         st.pyplot(fig, use_container_width=False)
 
     with col2:
-        st.dataframe(summary)
+        st.dataframe(summary, hide_index=True)
     
     #Analisis cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Analisis Hasil Cluster</p>", unsafe_allow_html=True)
@@ -78,14 +85,8 @@ def show():
         fitur_digunakan=st.session_state.user_input["fitur_digunakan"],
         algoritma=st.session_state.user_input["metode_clustering"]
     )
-    col1, col2 = st.columns([2, 3])
-    with col1:
-        st.markdown("**Rata-rata indikator per cluster:**")
-        st.dataframe(mean_c)
-    with col2:
-        st.markdown("**Skema label cluster:**")
-        df_labels = pd.DataFrame(list(labels.items()), columns=["Cluster", "Label"])
-        st.dataframe(df_labels)
+    st.markdown("**Rata-rata indikator per cluster:**")
+    st.dataframe(mean_c)
         
     #Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
@@ -210,6 +211,8 @@ def show():
         st.markdown("**Evaluasi Cluster**")
         col1, col2 = st.columns(2)
         with col1:
+            kategori, warna, deskripsi = get_kategori_silhouette(user_input['silhouette'])
+            
             st.markdown(
                 f"""
                 <div style="text-align:left; margin-bottom:20px;">
@@ -219,8 +222,11 @@ def show():
                     <div style="font-size:28px; font-weight:bold; color:white; margin-top:2px;">
                         {user_input['silhouette']:.4f}
                     </div>
-                    <div style="font-size:14px; color:gray; margin-top:-2px;">
-                        Silhouette mendekati 1 lebih baik
+                    <div style="font-size:13px; color:{warna}; margin-top:4px; font-weight:600;">
+                        {kategori}
+                    </div>
+                    <div style="font-size:14px; color:#9ca3af; margin-top:2px;">
+                        {deskripsi}, Silhouette mendekati 1 lebih baik
                     </div>
                 </div>
                 """,
@@ -237,7 +243,7 @@ def show():
                     <div style="font-size:28px; font-weight:bold; color:white; margin-top:2px;">
                         {user_input['dbi']:.4f}
                     </div>
-                    <div style="font-size:14px; color:gray; margin-top:-2px;">
+                    <div style="font-size:14px; color:#9ca3af; margin-top:-2px;">
                         DBI mendekati 0 lebih baik
                     </div>
                 </div>
@@ -258,6 +264,12 @@ def show():
             """,
             unsafe_allow_html=True
         )
+        
+    #Simpan Silhouette Plot
+    if 'fig_sil' in locals() and not any(t == "Silhouette Plot" for t, _ in st.session_state.all_figs):
+        st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
+        plt.close(fig_sil)
+
 
     #Heatmap Korelasi
     st.markdown(
@@ -274,9 +286,27 @@ def show():
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        st.markdown("""
+        <p style='text-align:left; font-size:16px; font-weight:bold; margin-top:24px;'> Korelasi menggambarkan seberapa erat hubungan antara dua indikator. </p>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <p style='text-align:left; font-size:14px; margin-top:6px;'>
+        <b>Nilai positif (+):</b> Menunjukkan bahwa kedua indikator bergerak searah. ketika satu indikator meningkat, indikator lainnya juga cenderung meningkat.  
+        <br>
+        <b>Nilai negatif (−):</b> Menunjukkan bahwa kedua indikator bergerak berlawanan arah. ketika satu indikator meningkat, indikator lainnya cenderung menurun.  
+        <br>
+        <b>Nilai mendekati nol:</b> Mengindikasikan hubungan yang lemah atau tidak konsisten antara dua indikator.  
+        <br>
+        <b>Nilai mendekati +1 atau −1:</b> Menunjukkan hubungan yang sangat kuat, baik searah maupun berlawanan arah.  
+        </p>
+        """, unsafe_allow_html=True)
         st.pyplot(fig_heatmap, use_container_width=True)
     
-
+    #Simpan Heatmap
+    if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
+        st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
+        plt.close(fig_heatmap)
+    
     #Tren fitur tahunan
     indikator_rendah_bagus = ["P0", "P1", "P2"]
     tahun_tersedia = df_hasil["Tahun"].nunique()
@@ -336,41 +366,106 @@ def show():
 
             st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n_input} Kabupaten/Kota</p>", unsafe_allow_html=True)
             st.dataframe(tabel_multi_tahun, use_container_width=True)
+    
+    
+    top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
+
+    if tahun_tersedia > 1:
+        fitur_tersedia = [f for f in user_input["fitur_digunakan"] if f in df_hasil.columns]
+        
+        for fitur in fitur_tersedia:
+            deskripsi = indikator_deskripsi.get(fitur, fitur)
+            ascending = True if fitur in indikator_rendah_bagus else False
+
+            wilayah_top = (
+                df_hasil[df_hasil["Tahun"] == tahun_terbaru]
+                [["Nama Wilayah", fitur]]
+                .sort_values(by=fitur, ascending=ascending)
+                .head(top_n_pdf)["Nama Wilayah"] 
+            )
+
+            df_tren_top = df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
+
+            judul_tren = f"{top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren)
+
+            if not any(t == f"Tren {deskripsi}" for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
+                plt.close(fig_tren_full)
+
+            tahun_tersedia_list = sorted(df_hasil["Tahun"].unique())
+
+            tabel_multi_tahun = (
+                df_tren_top
+                .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur)
+                .reset_index()
+            )
+
+            available_years = [y for y in tahun_tersedia_list if y in tabel_multi_tahun.columns]
+            tabel_multi_tahun = tabel_multi_tahun[["Nama Wilayah"] + available_years]
+
+            tahun_terbaru_col = available_years[-1] 
+            tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru_col, ascending=ascending)
+
+            tabel_fig = df_to_fig_table(
+                tabel_multi_tahun,
+                title=f"Tabel {top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
+            )
+            if not any(t == f"Tabel Tren {deskripsi}" for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
+                plt.close(tabel_fig)
 
 
     #Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
 
-    st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:20px;'>Sebaran Indikator per Cluster</p>", unsafe_allow_html=True)
+    #Scatterplot Pasangan Indikator
+    st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Scatterplot Pasangan Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
-        loader("Sedang membuat scatter indikator...")
+        loader("Sedang membuat scatterplot...")
 
-    fig_scatter = visualisasi_sebaran_cluster_per_indikator(
+    figures_scatter = visualisasi_scatter_per_pasangan_terpisah(
         df_hasil,
         fitur_digunakan=user_input["fitur_digunakan"],
         algo=user_input["metode_clustering"]
     )
     placeholder.empty()
-    col1, col2, col3 = st.columns([1, 3, 1])
+
+    col1, col2, col3 = st.columns([1, 6, 1])
     with col2:
-        st.pyplot(fig_scatter, use_container_width=True)
+        tampilkan_figures_dalam_grid(st, figures_scatter, n_cols=3)
+    
+    #Simpan semua figures scatterplot
+    if 'figures_scatter' in locals():
+        for title, fig in figures_scatter:
+            if not any(t == title for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((title, fig))
+                plt.close(fig)
 
-
-    st.markdown("<p style='text-align:center; font-size:20px; font-weight:bold; margin-top:24px;'>Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
+    #Distribusi indikator per cluster
+    st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Boxplot Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
         loader("Sedang membuat boxplot indikator...")
 
-    fig_box = boxgrid_per_cluster(
+    figures_boxplot = visualisasi_boxplot_per_indikator_terpisah(
         df_hasil,
-        vars_,
-        f"Distribusi Indikator ({user_input['metode_clustering']})"
+        fitur_digunakan=user_input["fitur_digunakan"],
+        algo=user_input["metode_clustering"]
     )
     placeholder.empty()
-    col1, col2, col3 = st.columns([1, 3, 1])
+
+    col1, col2, col3 = st.columns([1, 6, 1])
     with col2:
-        st.pyplot(fig_box, use_container_width=True)
+        tampilkan_figures_dalam_grid(st, figures_boxplot, n_cols=3)
+    
+    #Simpan Boxplot
+    if 'figures_boxplot' in locals():
+        for title, fig in figures_boxplot:
+            if not any(t == title for t, _ in st.session_state.all_figs):
+                st.session_state.all_figs.append((title, fig))
+                plt.close(fig)
 
     #Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
@@ -396,72 +491,10 @@ def show():
 
     except Exception as e:
         st.error(f"Gagal menampilkan peta: {e}")
-
-
-    #Download Visualisasi Clustering
-    if "all_figs" not in st.session_state:
-        st.session_state.all_figs = []
-
-    if 'fig_sil' in locals() and not any(t == "Silhouette Plot" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
-
-    if 'fig_scatter' in locals() and not any(t == "Sebaran Indikator" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Sebaran Indikator", getattr(fig_scatter, "fig", fig_scatter)))
-
-    if 'fig_box' in locals() and not any(t == "Boxplot Indikator" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Boxplot Indikator", fig_box))
-
-    if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
-
-    top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
-
-    if tahun_tersedia > 1:
-        fitur_tersedia = [f for f in user_input["fitur_digunakan"] if f in df_hasil.columns]
-        
-        for fitur in fitur_tersedia:
-            deskripsi = indikator_deskripsi.get(fitur, fitur)
-            ascending = True if fitur in indikator_rendah_bagus else False
-
-            wilayah_top = (
-                df_hasil[df_hasil["Tahun"] == tahun_terbaru]
-                [["Nama Wilayah", fitur]]
-                .sort_values(by=fitur, ascending=ascending)
-                .head(top_n_pdf)["Nama Wilayah"] 
-            )
-
-            df_tren_top = df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
-
-            judul_tren = f"{top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
-            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren)
-
-            if not any(t == f"Tren {deskripsi}" for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
-
-            tahun_tersedia_list = sorted(df_hasil["Tahun"].unique())
-
-            tabel_multi_tahun = (
-                df_tren_top
-                .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur)
-                .reset_index()
-            )
-
-            available_years = [y for y in tahun_tersedia_list if y in tabel_multi_tahun.columns]
-            tabel_multi_tahun = tabel_multi_tahun[["Nama Wilayah"] + available_years]
-
-            tahun_terbaru_col = available_years[-1] 
-            tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru_col, ascending=ascending)
-
-            tabel_fig = df_to_fig_table(
-                tabel_multi_tahun,
-                title=f"Tabel {top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
-            )
-            if not any(t == f"Tabel Tren {deskripsi}" for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
-
             
     if 'fig_map_static' in locals() and fig_map_static is not None and not any(t == "Peta Hasil Clustering" for t, _ in st.session_state.all_figs):
         st.session_state.all_figs.append(("Peta Hasil Clustering", fig_map_static))
+        plt.close(fig_map_static)
         
     #Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)

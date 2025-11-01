@@ -1,5 +1,5 @@
 import streamlit as st
-from api.beranda_helper import get_base64_image, create_card_section
+from api.beranda_helper import get_base64_image, create_card_section, load_card_data
 
 def show():
     #Hero
@@ -74,7 +74,7 @@ def show():
         unsafe_allow_html=True
     )
     
-    #CTA Button
+    #CTA Button ke halaman clustering wilayah
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         if st.button(
@@ -106,7 +106,8 @@ def show():
     )
 
     st.markdown("<br><br>", unsafe_allow_html=True)
-
+    
+    #Informasi Manfaat, Indikator, Metode
     st.markdown("""
     <style>
     .info-card {
@@ -156,50 +157,12 @@ def show():
     </style>
     """, unsafe_allow_html=True)
 
-    manfaat_data = [
-        "Menyediakan penerapan algoritma clustering dalam bentuk sistem interaktif.",
-        "Menampilkan hasil pengelompokan wilayah dalam bentuk tabel, grafik, dan peta interaktif.",
-        "Memberikan informasi yang mudah diakses dan dipahami mengenai kondisi antarwilayah di Indonesia.",
-        "Membantu mengidentifikasi pola kesamaan dan perbedaan antarwilayah dalam bentuk visualisasi dan pemetaan."
-    ]
 
-    indikator_data = [
-        {
-            "title": "Angka Harapan Hidup (AHH) Laki-laki",
-            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk laki-laki, mencerminkan kualitas kesehatan dan kesejahteraan kelompok pria di suatu wilayah."
-        },
-        {
-            "title": "Angka Harapan Hidup (AHH) Perempuan",
-            "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk perempuan, mencerminkan kualitas kesehatan dan kesejahteraan kelompok wanita di suatu wilayah."
-        },
-        {
-            "title": "Persentase Penduduk Miskin (P0)",
-            "description": "Proporsi penduduk yang berada di bawah garis kemiskinan. Indikator ini mengukur tingkat kemiskinan di suatu wilayah."
-        },
-        {
-            "title": "Rata-rata Lama Sekolah (RLS)",
-            "description": "Rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 25 tahun ke atas, mencerminkan tingkat pendidikan."
-        },
-        {
-            "title": "Indeks Kedalaman Kemiskinan (P1)",
-            "description": "Mengukur seberapa jauh rata-rata pendapatan penduduk miskin dari garis kemiskinan. Semakin tinggi nilainya, semakin dalam kemiskinannya."
-        },
-        {
-            "title": "Indeks Keparahan Kemiskinan (P2)",
-            "description": "Mengukur ketimpangan pengeluaran di antara penduduk miskin. Nilai yang tinggi menunjukkan adanya kesenjangan yang besar."
-        }
-    ]
-
-    metode_data = [
-        {
-            "title": "Intelligent K-Median",
-            "description": "Sebuah pengembangan dari algoritma K-Median yang memilih medoid (titik pusat) awal secara cerdas, bukan acak. Tujuannya adalah untuk menghasilkan cluster yang lebih stabil, akurat, dan mempercepat proses konvergensi."
-        },
-        {
-            "title": "K-Medoids",
-            "description": "Algoritma ini mengelompokkan data dengan memilih titik data aktual sebagai pusat cluster (medoid). Metode ini lebih tangguh terhadap noise dan outlier dibandingkan K-Means yang menggunakan rata-rata sebagai pusat cluster."
-        }
-    ]
+    #Akses data
+    data_cards = load_card_data()
+    manfaat_data = data_cards["manfaat"]
+    indikator_data = data_cards["indikator"]
+    metode_data = data_cards["metode"]
 
     create_card_section(None, manfaat_data, columns=4, show_section_title=False)
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -209,7 +172,7 @@ def show():
 
     create_card_section("Metode Clustering", metode_data, columns=2)
     
-    #Clustering Wilayah Button
+    #CTA Button ke halaman clustering wilayah
     st.markdown("<div style='margin-top: 96px;'></div>", unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([1, 1, 1])

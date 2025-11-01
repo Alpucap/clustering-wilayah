@@ -9,10 +9,11 @@ def show():
         unsafe_allow_html=True
     )
 
-    #Validasi
+    #Validasi field
     if 'field_errors' not in st.session_state:
         st.session_state.field_errors = {}
-
+        
+    #Form Registration
     #Username
     username = st.text_input(
         "Username *", 
@@ -62,10 +63,9 @@ def show():
             f"<p style='color: red; font-size: 14px; margin-top: -10px;'>{st.session_state.field_errors['confirm_password']}</p>", 
             unsafe_allow_html=True
         )
-
-    st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
-
+        
     #Daftar button
+    st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
     if st.button("Daftar", use_container_width=True):
         db = SessionLocal()
         errors = validate_all_fields(username, email, password, confirm_password, db)

@@ -39,6 +39,7 @@ def show():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<p>Selain melalui Buku Manual, panduan singkat penggunaan clustering wilayah juga tersedia langsung di bawah ini.</p>", unsafe_allow_html=True)
     
+    #Cara Penggunaan
     with st.expander("Bagaimana cara menggunakan clustering wilayah?"):
         st.write(
             """
@@ -67,7 +68,7 @@ def show():
     st.markdown("---")
         
     
-    #QnA
+    #Pertanyaan Umum
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -129,3 +130,69 @@ def show():
             "K-Medoids adalah algoritma clustering mirip dengan K-Means, tetapi menggunakan objek aktual sebagai pusat cluster. "
             "Metode ini lebih tahan terhadap outlier dibandingkan K-Means."
         )
+    
+    with st.expander("Apa itu Silhouette Score?"):
+        st.write(
+            "Silhouette Score adalah metrik untuk mengukur kualitas clustering dengan menilai seberapa baik "
+            "suatu objek dikelompokkan dalam cluster-nya dibandingkan dengan cluster lain. "
+            "Nilai berkisar antara -1 hingga 1."
+        )
+        st.markdown(
+            """
+            **Interpretasi Silhouette Score:**
+            - **0.71 - 1.00**: Struktur Kuat (cluster sangat terpisah dengan baik)
+            - **0.51 - 0.70**: Struktur Sedang (cluster cukup terpisah)
+            - **0.26 - 0.50**: Struktur Lemah (cluster kurang terpisah, coba metode lain)
+            - **≤ 0.25**: Tidak Ada Struktur (cluster sangat overlap)
+            
+            Semakin mendekati 1, semakin baik kualitas clustering yang dihasilkan.
+            """
+        )
+    
+    with st.expander("Apa itu Davies-Bouldin Index (DBI)?"):
+        st.write(
+            "Davies-Bouldin Index (DBI) adalah metrik evaluasi clustering yang mengukur rasio rata-rata jarak "
+            "dalam cluster terhadap jarak antar cluster. DBI membantu menilai seberapa kompak dan terpisah cluster-cluster yang terbentuk."
+            "Semakin mendekati 0, semakin baik kualitas clustering yang dihasilkan."
+        )
+    
+    with st.expander("Apa itu Metrik Jarak (Distance Metric)?"):
+        st.write(
+            "Metrik jarak adalah ukuran untuk menentukan tingkat kemiripan atau perbedaan antara dua titik data. "
+            "Dalam algoritma clustering seperti K-Medoids dan K-Median, metrik jarak digunakan untuk menghitung seberapa dekat "
+            "atau jauh suatu data dari pusat cluster (medoid/median). "
+            "Pemilihan metrik jarak yang tepat sangat penting karena dapat memengaruhi hasil pengelompokan."
+        )
+        st.markdown(
+            """
+            **Beberapa metrik jarak umum yang digunakan antara lain:**
+            - **Euclidean Distance**: Mengukur jarak lurus antar titik (jarak geometris).
+            - **Manhattan Distance**: Mengukur jarak berdasarkan selisih absolut pada setiap dimensi.
+            - **Minkowski Distance**: Generalisasi dari Euclidean dan Manhattan.
+            """
+        )
+
+    with st.expander("Apa itu Euclidean Distance?"):
+        st.write(
+            "Euclidean Distance adalah metrik jarak paling umum digunakan dalam analisis clustering. "
+            "Metrik ini menghitung jarak garis lurus antara dua titik dalam ruang berdimensi-n. "
+            "Cocok digunakan jika skala data sudah seragam (tidak memiliki perbedaan satuan antar variabel)."
+        )
+        st.latex(r"d(i, j) = \sqrt{\sum_{k=1}^{n} (x_{ik} - x_{jk})^2}")
+        st.markdown("**Keterangan:**")
+        st.latex(r"d(i, j): \text{ jarak Euclidean antara objek } i \text{ dan } j")
+        st.latex(r"x_{ik}, x_{jk}: \text{ nilai variabel ke-}k \text{ untuk objek } i \text{ dan } j")
+        st.latex(r"n: \text{ jumlah variabel atau dimensi data}")
+
+    with st.expander("Apa itu Manhattan Distance?"):
+        st.write(
+            "Manhattan Distance (sering disebut City Block Distance atau L1-norm) "
+            "mengukur jarak antar titik dengan menjumlahkan selisih absolut tiap dimensi. "
+            "Ibarat menghitung jarak di kota berbentuk kotak (seperti jalan Manhattan), bukan garis lurus. "
+            "Metode ini lebih tahan terhadap outlier dibandingkan Euclidean Distance."
+        )
+        st.latex(r"d(i, j) = \sum_{k=1}^{n} |x_{ik} - x_{jk}|")
+        st.markdown("**Keterangan:**")
+        st.latex(r"d(i, j): \text{ jarak Manhattan antara objek } i \text{ dan } j")
+        st.latex(r"x_{ik}, x_{jk}: \text{ nilai variabel ke-}k \text{ untuk objek } i \text{ dan } j")
+        st.latex(r"n: \text{ jumlah variabel atau dimensi data}")

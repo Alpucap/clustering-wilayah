@@ -1,0 +1,44 @@
+{
+    "manfaat": [
+        "Menyediakan penerapan algoritma clustering dalam bentuk sistem interaktif.",
+        "Menampilkan hasil pengelompokan wilayah dalam bentuk tabel, grafik, dan peta interaktif.",
+        "Memberikan informasi yang mudah diakses dan dipahami mengenai kondisi antarwilayah di Indonesia.",
+        "Membantu mengidentifikasi pola kesamaan dan perbedaan antarwilayah dalam bentuk visualisasi dan pemetaan."
+    ],
+    "indikator": [
+        {
+        "title": "Angka Harapan Hidup (AHH) Laki-laki",
+        "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk laki-laki, mencerminkan kualitas kesehatan dan kesejahteraan kelompok pria di suatu wilayah."
+        },
+        {
+        "title": "Angka Harapan Hidup (AHH) Perempuan",
+        "description": "Rata-rata perkiraan usia yang dapat dicapai penduduk perempuan, mencerminkan kualitas kesehatan dan kesejahteraan kelompok wanita di suatu wilayah."
+        },
+        {
+        "title": "Persentase Penduduk Miskin (P0)",
+        "description": "Proporsi penduduk yang berada di bawah garis kemiskinan. Indikator ini mengukur tingkat kemiskinan di suatu wilayah."
+        },
+        {
+        "title": "Rata-rata Lama Sekolah (RLS)",
+        "description": "Rata-rata jumlah tahun pendidikan formal yang ditempuh oleh penduduk usia 25 tahun ke atas, mencerminkan tingkat pendidikan."
+        },
+        {
+        "title": "Indeks Kedalaman Kemiskinan (P1)",
+        "description": "Mengukur seberapa jauh rata-rata pendapatan penduduk miskin dari garis kemiskinan. Semakin tinggi nilainya, semakin dalam kemiskinannya."
+        },
+        {
+        "title": "Indeks Keparahan Kemiskinan (P2)",
+        "description": "Mengukur ketimpangan pengeluaran di antara penduduk miskin. Nilai yang tinggi menunjukkan adanya kesenjangan yang besar."
+        }
+    ],
+    "metode": [
+        {
+        "title": "Intelligent K-Median",
+        "description": "Sebuah pengembangan dari algoritma K-Median yang memilih medoid (titik pusat) awal secara cerdas, bukan acak. Tujuannya adalah untuk menghasilkan cluster yang lebih stabil, akurat, dan mempercepat proses konvergensi."
+        },
+        {
+        "title": "K-Medoids",
+        "description": "Algoritma ini mengelompokkan data dengan memilih titik data aktual sebagai pusat cluster (medoid). Metode ini lebih tangguh terhadap noise dan outlier dibandingkan K-Means yang menggunakan rata-rata sebagai pusat cluster."
+        }
+    ]
+}
