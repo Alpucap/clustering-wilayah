@@ -73,7 +73,7 @@ def show():
     col1, col2 = st.columns([2,3])
 
     with col1:
-        st.pyplot(fig, use_container_width=False)
+        st.pyplot(fig, width= 'content')
 
     with col2:
         st.dataframe(summary, hide_index=True)
@@ -108,7 +108,7 @@ def show():
             data=xlsx_buf.getvalue(),
             file_name="hasil_clustering.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
+            width= 'stretch'
         )
 
     with col2:
@@ -186,7 +186,7 @@ def show():
             data=pdf_buf.getvalue(),
             file_name="hasil_clustering.pdf",
             mime="application/pdf",
-            use_container_width=True
+            width= 'stretch'
         )
 
     st.markdown("---")
@@ -205,27 +205,40 @@ def show():
             algo=user_input["metode_clustering"]
         )
         placeholder.empty()
-        st.pyplot(fig_sil, use_container_width=False)
+        st.pyplot(fig_sil, width= 'content')
 
     with col2:
-        st.markdown("**Evaluasi Cluster**")
+        st.markdown("""
+        <div style='background-color: #0e1117; 
+                    border: 2px solid #262730; 
+                    border-radius: 10px; 
+                    padding: 20px; 
+                    margin-bottom: 15px;'>
+            <p style='color: white; font-size: 16px; font-weight: bold; margin: 0;'>Evaluasi Cluster</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         with col1:
             kategori, warna, deskripsi = get_kategori_silhouette(user_input['silhouette'])
             
             st.markdown(
                 f"""
-                <div style="text-align:left; margin-bottom:20px;">
-                    <div style="font-size:14px; font-weight:bold; color:#FAFAFA;">
+                <div style='background-color: #0e1117; 
+                            border: 2px solid #262730; 
+                            border-radius: 10px; 
+                            padding: 20px;
+                            height: 180px;'>
+                    <div style="font-size:14px; font-weight:bold; color:white; margin-bottom:10px;">
                         Silhouette Score
                     </div>
-                    <div style="font-size:28px; font-weight:bold; color:white; margin-top:2px;">
+                    <div style="font-size:32px; font-weight:bold; color:white; margin-bottom:10px;">
                         {user_input['silhouette']:.4f}
                     </div>
-                    <div style="font-size:13px; color:{warna}; margin-top:4px; font-weight:600;">
+                    <div style="font-size:13px; color:{warna}; margin-bottom:8px; font-weight:600;">
                         {kategori}
                     </div>
-                    <div style="font-size:14px; color:#9ca3af; margin-top:2px;">
+                    <div style="font-size:13px; color:#9ca3af; line-height:1.4;">
                         {deskripsi}, Silhouette mendekati 1 lebih baik
                     </div>
                 </div>
@@ -236,14 +249,18 @@ def show():
         with col2:
             st.markdown(
                 f"""
-                <div style="text-align:left; margin-bottom:20px;">
-                    <div style="font-size:14px; font-weight:bold; color:#FAFAFA;">
+                <div style='background-color: #0e1117; 
+                            border: 2px solid #262730; 
+                            border-radius: 10px; 
+                            padding: 20px;
+                            height: 180px;'>
+                    <div style="font-size:14px; font-weight:bold; color:white; margin-bottom:10px;">
                         Davies-Bouldin Index
                     </div>
-                    <div style="font-size:28px; font-weight:bold; color:white; margin-top:2px;">
+                    <div style="font-size:32px; font-weight:bold; color:white; margin-bottom:10px;">
                         {user_input['dbi']:.4f}
                     </div>
-                    <div style="font-size:14px; color:#9ca3af; margin-top:-2px;">
+                    <div style="font-size:13px; color:#9ca3af; line-height:1.4; margin-top:25px;">
                         DBI mendekati 0 lebih baik
                     </div>
                 </div>
@@ -253,17 +270,49 @@ def show():
 
         st.markdown(
             f"""
-            <div style="text-align:left; margin-bottom:20px; margin-top:8px;">
-                <div style="font-size:14px; font-weight:bold; color:#FAFAFA;">
+            <div style='background-color: #0e1117; 
+                        border: 2px solid #262730; 
+                        border-radius: 10px; 
+                        padding: 20px;
+                        margin-top: 10px;'>
+                <div style="font-size:14px; font-weight:bold; color:white; margin-bottom:10px;">
                     Waktu Komputasi (detik)
                 </div>
-                <div style="font-size:28px; font-weight:bold; color:white; margin-top:2px;">
+                <div style="font-size:32px; font-weight:bold; color:white;">
                     {st.session_state.user_input['waktu_komputasi']:.7f}
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
+        
+        st.markdown("""
+        <div style='background-color: #0e1117; 
+                    border: 2px solid #262730; 
+                    border-radius: 10px; 
+                    padding: 20px;
+                    margin-top: 10px;'>
+            <div style="font-size:14px; font-weight:bold; color:white; margin-bottom:15px;">
+                Interpretasi Silhouette Score
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div style="width: 12px; height: 12px; background-color: #28a745; border-radius: 3px; margin-right: 10px;"></div>
+                <span style="color: white; font-size: 13px;"><b>0.71 - 1.00:</b> <span style="color: #28a745;">Struktur Kuat</span></span>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div style="width: 12px; height: 12px; background-color: #ffc107; border-radius: 3px; margin-right: 10px;"></div>
+                <span style="color: white; font-size: 13px;"><b>0.51 - 0.70:</b> <span style="color: #ffc107;">Struktur Sedang</span></span>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div style="width: 12px; height: 12px; background-color: #fd7e14; border-radius: 3px; margin-right: 10px;"></div>
+                <span style="color: white; font-size: 13px;"><b>0.26 - 0.50:</b> <span style="color: #fd7e14;">Struktur Lemah</span></span>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div style="width: 12px; height: 12px; background-color: #dc3545; border-radius: 3px; margin-right: 10px;"></div>
+                <span style="color: white; font-size: 13px;"><b>< 0.26:</b> <span style="color: #dc3545;">Tidak Ada Struktur</span></span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
     #Simpan Silhouette Plot
     if 'fig_sil' in locals() and not any(t == "Silhouette Plot" for t, _ in st.session_state.all_figs):
@@ -284,23 +333,89 @@ def show():
     fig_heatmap = heatmap_correlation(df_hasil, vars_, "Heatmap Korelasi Variabel")
     placeholder.empty()
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2 = st.columns(2)
+    with col1:
+        st.pyplot(fig_heatmap, use_container_width=True)
     with col2:
         st.markdown("""
-        <p style='text-align:left; font-size:16px; font-weight:bold; margin-top:24px;'> Korelasi menggambarkan seberapa erat hubungan antara dua indikator. </p>
+        <div style='background-color: #0e1117; 
+                    border: 2px solid #262730; 
+                    border-radius: 10px; 
+                    padding: 15px; 
+                    margin-bottom: 15px;'>
+            <p style='color: white; font-size: 16px; font-weight: bold; margin: 0; text-align: left;'> 
+            Korelasi menggambarkan seberapa erat hubungan antara dua indikator.
+            </p>
+        </div>
         """, unsafe_allow_html=True)
-        st.markdown("""
-        <p style='text-align:left; font-size:14px; margin-top:6px;'>
-        <b>Nilai positif (+):</b> Menunjukkan bahwa kedua indikator bergerak searah. ketika satu indikator meningkat, indikator lainnya juga cenderung meningkat.  
-        <br>
-        <b>Nilai negatif (−):</b> Menunjukkan bahwa kedua indikator bergerak berlawanan arah. ketika satu indikator meningkat, indikator lainnya cenderung menurun.  
-        <br>
-        <b>Nilai mendekati nol:</b> Mengindikasikan hubungan yang lemah atau tidak konsisten antara dua indikator.  
-        <br>
-        <b>Nilai mendekati +1 atau −1:</b> Menunjukkan hubungan yang sangat kuat, baik searah maupun berlawanan arah.  
-        </p>
-        """, unsafe_allow_html=True)
-        st.pyplot(fig_heatmap, use_container_width=True)
+        
+        row1_col1, row1_col2 = st.columns(2)
+        with row1_col1:
+            st.markdown("""
+            <div style='background-color: #0e1117; 
+                        border: 2px solid #262730; 
+                        border-radius: 10px; 
+                        padding: 20px; 
+                        margin-bottom: 10px;
+                        height: 160px;
+                        display: flex;
+                        flex-direction: column;'>
+                <p style='color: #4a9eff; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;'>Nilai Positif (+)</p>
+                <p style='color: white; font-size: 13px; margin: 0; line-height: 1.5;'>
+                Kedua indikator bergerak searah. Ketika satu indikator meningkat, indikator lainnya juga cenderung meningkat.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with row1_col2:
+            st.markdown("""
+            <div style='background-color: #0e1117; 
+                        border: 2px solid #262730; 
+                        border-radius: 10px; 
+                        padding: 20px; 
+                        margin-bottom: 10px;
+                        height: 160px;
+                        display: flex;
+                        flex-direction: column;'>
+                <p style='color: #4a9eff; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;'>Nilai Negatif (−)</p>
+                <p style='color: white; font-size: 13px; margin: 0; line-height: 1.5;'>
+                Kedua indikator bergerak berlawanan arah. Ketika satu indikator meningkat, indikator lainnya cenderung menurun.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        row2_col1, row2_col2 = st.columns(2)
+        with row2_col1:
+            st.markdown("""
+            <div style='background-color: #0e1117; 
+                        border: 2px solid #262730; 
+                        border-radius: 10px; 
+                        padding: 20px;
+                        height: 160px;
+                        display: flex;
+                        flex-direction: column;'>
+                <p style='color: #4a9eff; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;'>Mendekati Nol</p>
+                <p style='color: white; font-size: 13px; margin: 0; line-height: 1.5;'>
+                Mengindikasikan hubungan yang lemah atau tidak konsisten antara dua indikator.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with row2_col2:
+            st.markdown("""
+            <div style='background-color: #0e1117; 
+                        border: 2px solid #262730; 
+                        border-radius: 10px; 
+                        padding: 20px;
+                        height: 160px;
+                        display: flex;
+                        flex-direction: column;'>
+                <p style='color: #4a9eff; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;'>Mendekati ±1</p>
+                <p style='color: white; font-size: 13px; margin: 0; line-height: 1.5;'>
+                Menunjukkan hubungan yang sangat kuat, baik searah maupun berlawanan arah.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
     
     #Simpan Heatmap
     if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
@@ -354,7 +469,7 @@ def show():
                 top_n=top_n_input,  
                 judul=judul_tren
             )
-            st.pyplot(fig_tren_web, use_container_width=True)
+            st.pyplot(fig_tren_web, width= 'stretch')
 
             tabel_multi_tahun = (
                 df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
@@ -365,7 +480,7 @@ def show():
             tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru, ascending=ascending)
 
             st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n_input} Kabupaten/Kota</p>", unsafe_allow_html=True)
-            st.dataframe(tabel_multi_tahun, use_container_width=True)
+            st.dataframe(tabel_multi_tahun, width= 'stretch')
     
     
     top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
@@ -486,7 +601,7 @@ def show():
         )
 
         placeholder.empty()
-        st_folium(m, use_container_width=True, height=800, returned_objects=[])
+        st_folium(m, width= 'stretch', height=800, returned_objects=[])
         fig_map_static = buat_peta_statis(gdf_map, labels, cluster_col="Cluster")
 
     except Exception as e:
@@ -514,7 +629,7 @@ def show():
                 data=zip_buf.getvalue(),
                 file_name="visualisasi_clustering.zip",
                 mime="application/zip",
-                use_container_width=True
+                width= 'stretch'
             )
 
         with col2:
@@ -536,7 +651,7 @@ def show():
                 data=pdf_all,
                 file_name="visualisasi_clustering.pdf",
                 mime="application/pdf",
-                use_container_width=True
+                width= 'stretch'
             )
     else:
         st.info("Belum ada grafik yang bisa diunduh.")

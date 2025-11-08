@@ -2,13 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import streamlit as st
 
-# Ambil URL dari secrets.toml
 DATABASE_URL = st.secrets["DB_URL"]
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Dependency (untuk tiap halaman pakai session sendiri)
 def get_db():
     db = SessionLocal()
     try:

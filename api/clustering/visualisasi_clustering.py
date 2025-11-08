@@ -297,13 +297,13 @@ def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
             for i in range(cols_in_row):
                 with cols[offset + i]:
                     title, fig = figures[idx]
-                    st.pyplot(fig, use_container_width=True)
+                    st.pyplot(fig, width= 'stretch')
                     idx += 1
         else:
             for i in range(n_cols):
                 with cols[i]:
                     title, fig = figures[idx]
-                    st.pyplot(fig, use_container_width=True)
+                    st.pyplot(fig, width= 'stretch')
                     idx += 1
 
 #Tren indikator per tahun

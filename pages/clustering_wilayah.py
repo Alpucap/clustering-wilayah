@@ -66,7 +66,7 @@ def show():
                         data=template_dataset,
                         file_name="template_dataset_clustering_wilayah.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        use_container_width=True
+                        width= 'stretch'
                     )
 
             st.markdown(
@@ -196,16 +196,37 @@ def show():
         tahun_awal, tahun_akhir = None, None
 
     #Pilih Jumlah Cluster
+    jumlah_cluster_optimal = 2
     if metode_clustering == "K-Medoids":
         st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Jumlah Cluster (K)</p>", unsafe_allow_html=True)
-        jumlah_cluster = st.slider(
-            "Pilih jumlah cluster (K)",
-            min_value=2,
-            max_value=6,
-            value=2, #Secara experiment paling optimal
-            step=1,
-            help="Jumlah cluster untuk analisis."
+        
+        mode_k = st.radio(
+            "Pilih mode penentuan jumlah cluster:",
+            ["Gunakan Jumlah Optimal", "Pilih Jumlah Cluster Sendiri"],
+            index=0,
+            horizontal=True,
+            help=f"Mode optimal menggunakan K = {jumlah_cluster_optimal}, nilai yang memberikan performa terbaik menurut hasil evaluasi metrik clustering."
         )
+        
+        if mode_k == "Gunakan Jumlah Optimal":
+            jumlah_cluster = jumlah_cluster_optimal
+            st.markdown(f"""
+            <div style='padding: 12px; background-color: #0e1117; border-left: 4px solid #4da6ff; margin-top: 10px; border-radius: 4px;'>
+                <strong>Pengaturan Optimal Diterapkan</strong><br/>
+                Jumlah cluster otomatis diatur ke <strong>K={jumlah_cluster_optimal}</strong> untuk hasil clustering terbaik.
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            jumlah_cluster = st.slider(
+                "Pilih jumlah cluster (K)",
+                min_value=2,
+                max_value=6,
+                value=jumlah_cluster_optimal,
+                step=1,
+                help=f"Jumlah cluster untuk analisis. K={jumlah_cluster_optimal} memberikan hasil optimal."
+            )
+            if jumlah_cluster != jumlah_cluster_optimal:
+                st.warning(f"Anda memilih K={jumlah_cluster}. Hasil clustering mungkin tidak seoptimal K={jumlah_cluster_optimal}.")
     else:
         jumlah_cluster = None
 
@@ -284,7 +305,7 @@ def show():
         #Jalankan Clustering
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            if st.button("Jalankan Clustering", use_container_width=True):
+            if st.button("Jalankan Clustering", width= 'stretch'):
                 
                 result = run_clustering(df_clustering_filtered, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak)
                 

@@ -34,7 +34,7 @@
     "metode": [
         {
         "title": "Intelligent K-Median",
-        "description": "Sebuah pengembangan dari algoritma K-Median yang memilih medoid (titik pusat) awal secara cerdas, bukan acak. Tujuannya adalah untuk menghasilkan cluster yang lebih stabil, akurat, dan mempercepat proses konvergensi."
+        "description": "Sebuah pengembangan dari algoritma K-Median yang memilih titik pusat awal secara cerdas, bukan acak. Tujuannya adalah untuk menghasilkan cluster yang lebih stabil, akurat, dan mempercepat proses konvergensi."
         },
         {
         "title": "K-Medoids",

@@ -34,7 +34,7 @@ def show(cookies):
     st.subheader("Ganti Username")
     new_username = st.text_input("Username baru", placeholder="Masukkan username baru")
 
-    if st.button("Simpan", use_container_width=True):
+    if st.button("Simpan", width= 'stretch'):
         if not new_username:
             st.error("Username baru tidak boleh kosong.")
         elif get_user_by_username(db, new_username):
@@ -58,11 +58,11 @@ def show(cookies):
     delete_account = False
 
     with col1:
-        if st.button("Logout", use_container_width=True):
+        if st.button("Logout", width= 'stretch'):
             logout_clicked = True
 
     with col2:
-        if st.button("Hapus Akun", use_container_width=True):
+        if st.button("Hapus Akun", width= 'stretch'):
             st.session_state.show_delete_confirmation = True
 
     if logout_clicked:
@@ -85,12 +85,12 @@ def show(cookies):
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("Batal", use_container_width=True):
+            if st.button("Batal", width= 'stretch'):
                 st.session_state.show_delete_confirmation = False
                 st.rerun()
         
         with col2:
-            if st.button("Ya, Hapus", type="primary", disabled=not confirm, use_container_width=True):
+            if st.button("Ya, Hapus", type="primary", disabled=not confirm, width= 'stretch'):
                 delete_account = True
 
     if delete_account:

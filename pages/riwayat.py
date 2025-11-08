@@ -61,7 +61,7 @@ def show(cookies=None):
 
     df = pd.DataFrame(data)
 
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df, width= 'stretch')
     
     #Download Riwayat Clustering
     st.markdown("#### Download Riwayat")
@@ -76,7 +76,7 @@ def show(cookies=None):
             data=buffer.getvalue(),
             file_name="riwayat_aktivitas.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
+            width= 'stretch'
         )
 
     with col2:
@@ -149,5 +149,5 @@ def show(cookies=None):
             data=pdf_buffer.getvalue(),
             file_name="riwayat_aktivitas.pdf",
             mime="application/pdf",
-            use_container_width=True
+            width= 'stretch'
         )

@@ -3,7 +3,7 @@ from api.beranda_helper import get_base64_image, create_card_section, load_card_
 
 def show():
     #Hero
-    img_base64 = get_base64_image("static/hero_background.jpg")
+    img_base64 = get_base64_image("static/hero_background.webp")
     st.markdown(
         f"""
         <style>
@@ -11,7 +11,7 @@ def show():
             position: relative;
             width: 100%;  
             height: 70vh;
-            background-image: url("data:image/jpg;base64,{img_base64}");
+            background-image: url("data:image/webp;base64,{img_base64}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -79,7 +79,7 @@ def show():
     with col2:
         if st.button(
             "Mulai Eksplorasi Kota & Kabupaten di Indonesia", 
-            use_container_width=True,
+            width= 'stretch',
             help="Mulai proses clustering kabupaten/kota di Indonesia",
             key="btn_start_clustering"
         ):
@@ -179,7 +179,7 @@ def show():
     with col2:
         if st.button(
             "Jalankan Pengelompokan Sekarang", 
-            use_container_width=True,
+            width= 'stretch',
             help="Mulai proses clustering kabupaten/kota di Indonesia",
             key="btn_start_clustering_bottom"
         ):

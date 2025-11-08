@@ -33,7 +33,7 @@ def show():
             data=file_manual,
             file_name="Manual_Book.pdf",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            use_container_width=True
+            width= 'stretch'
         )
     
     st.markdown("<br>", unsafe_allow_html=True)

@@ -66,7 +66,7 @@ def show():
         
     #Daftar button
     st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
-    if st.button("Daftar", use_container_width=True):
+    if st.button("Daftar", width= 'stretch'):
         db = SessionLocal()
         errors = validate_all_fields(username, email, password, confirm_password, db)
         
@@ -86,6 +86,6 @@ def show():
     st.markdown("---")
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
-        if st.button("Sudah Punya Akun? Login sekarang", use_container_width=True):
+        if st.button("Sudah Punya Akun? Login sekarang", width= 'stretch'):
             st.session_state.page = "register"
             st.rerun()
