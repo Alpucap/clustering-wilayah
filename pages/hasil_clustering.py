@@ -80,13 +80,44 @@ def show():
     
     #Analisis cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Analisis Hasil Cluster</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Rata - Rata Indikator per Cluster</p>", unsafe_allow_html = True)
     mean_c, labels, score = analisis_cluster(
         df_hasil,
         fitur_digunakan=st.session_state.user_input["fitur_digunakan"],
         algoritma=st.session_state.user_input["metode_clustering"]
     )
-    st.markdown("**Rata-rata indikator per cluster:**")
-    st.dataframe(mean_c)
+    
+    n_clusters = len(mean_c)
+    fitur_digunakan = st.session_state.user_input["fitur_digunakan"]
+    
+    if n_clusters <= 2:
+        n_cols = n_clusters
+    elif n_clusters <= 4:
+        n_cols = 2
+    else:
+        n_cols = 3
+    
+    cols = st.columns(n_cols)
+    
+    for idx, cluster_id in enumerate(mean_c.index):
+        with cols[idx % n_cols]:
+            cluster_label = labels.get(cluster_id, f"Cluster {cluster_id}")
+            
+            html_content = f"""<div style='background-color: #0e1117; border: 2px solid #262730; border-radius: 10px; padding: 20px; margin-bottom: 15px;'>
+                <p style='color: #4a9eff; font-size: 18px; font-weight: bold; margin-bottom: 15px;'>{cluster_label}</p>"""
+            
+            for fitur in fitur_digunakan:
+                nilai = mean_c.loc[cluster_id, fitur]
+                deskripsi_fitur = indikator_deskripsi.get(fitur, fitur)
+                
+                html_content += f"""<div style='margin-bottom: 12px;'>
+                    <p style='color: #9ca3af; font-size: 13px; margin: 0;'>{deskripsi_fitur}</p>
+                    <p style='color: white; font-size: 20px; font-weight: bold; margin: 0;'>{nilai:.3f}</p>
+                </div>"""
+            
+            html_content += "</div>"
+            
+            st.markdown(html_content, unsafe_allow_html=True)
         
     #Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
