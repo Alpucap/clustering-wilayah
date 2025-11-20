@@ -13,11 +13,7 @@ import zipfile
 import matplotlib.pyplot as plt
 
 def show():
-    #Inisialisasi
-    
-    #Download Visualisasi Clustering
-    if "all_figs" not in st.session_state:
-        st.session_state.all_figs = []
+    st.session_state.all_figs = []
         
     #Title
     st.markdown(
@@ -346,9 +342,7 @@ def show():
         """, unsafe_allow_html=True)
         
     #Simpan Silhouette Plot
-    if 'fig_sil' in locals() and not any(t == "Silhouette Plot" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
-        plt.close(fig_sil)
+    st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
 
 
     #Heatmap Korelasi
@@ -449,9 +443,7 @@ def show():
             """, unsafe_allow_html=True)
     
     #Simpan Heatmap
-    if 'fig_heatmap' in locals() and not any(t == "Heatmap Korelasi" for t, _ in st.session_state.all_figs):
-        st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
-        plt.close(fig_heatmap)
+    st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
     
     #Tren fitur tahunan
     indikator_rendah_bagus = ["P0", "P1", "P2"]
@@ -517,9 +509,7 @@ def show():
     top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
 
     if tahun_tersedia > 1:
-        fitur_tersedia = [f for f in user_input["fitur_digunakan"] if f in df_hasil.columns]
-        
-        for fitur in fitur_tersedia:
+        for fitur in user_input["fitur_digunakan"]:
             deskripsi = indikator_deskripsi.get(fitur, fitur)
             ascending = True if fitur in indikator_rendah_bagus else False
 
@@ -535,9 +525,7 @@ def show():
             judul_tren = f"{top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
             fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren)
 
-            if not any(t == f"Tren {deskripsi}" for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
-                plt.close(fig_tren_full)
+            st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
 
             tahun_tersedia_list = sorted(df_hasil["Tahun"].unique())
 
@@ -557,9 +545,7 @@ def show():
                 tabel_multi_tahun,
                 title=f"Tabel {top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
             )
-            if not any(t == f"Tabel Tren {deskripsi}" for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
-                plt.close(tabel_fig)
+            st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
 
 
     #Visualisasi Indikator per Cluster
@@ -582,12 +568,8 @@ def show():
     with col2:
         tampilkan_figures_dalam_grid(st, figures_scatter, n_cols=3)
     
-    #Simpan semua figures scatterplot
-    if 'figures_scatter' in locals():
-        for title, fig in figures_scatter:
-            if not any(t == title for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((title, fig))
-                plt.close(fig)
+    for title, fig in figures_scatter:
+        st.session_state.all_figs.append((title, fig))
 
     #Distribusi indikator per cluster
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Boxplot Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
@@ -606,12 +588,8 @@ def show():
     with col2:
         tampilkan_figures_dalam_grid(st, figures_boxplot, n_cols=3)
     
-    #Simpan Boxplot
-    if 'figures_boxplot' in locals():
-        for title, fig in figures_boxplot:
-            if not any(t == title for t, _ in st.session_state.all_figs):
-                st.session_state.all_figs.append((title, fig))
-                plt.close(fig)
+    for title, fig in figures_boxplot:
+        st.session_state.all_figs.append((title, fig))
 
     #Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
@@ -638,9 +616,8 @@ def show():
     except Exception as e:
         st.error(f"Gagal menampilkan peta: {e}")
             
-    if 'fig_map_static' in locals() and fig_map_static is not None and not any(t == "Peta Hasil Clustering" for t, _ in st.session_state.all_figs):
+    if fig_map_static is not None:
         st.session_state.all_figs.append(("Peta Hasil Clustering", fig_map_static))
-        plt.close(fig_map_static)
         
     #Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)
@@ -686,3 +663,6 @@ def show():
             )
     else:
         st.info("Belum ada grafik yang bisa diunduh.")
+    
+    for title, fig in st.session_state.all_figs:
+        plt.close(fig)
