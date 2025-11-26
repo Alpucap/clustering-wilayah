@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
-from api.clustering.visualisasi_clustering import analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, visualisasi_tren_tahunan, analisis_silhouette_per_cluster, get_kategori_silhouette, visualisasi_scatter_per_pasangan_terpisah, tampilkan_figures_dalam_grid, visualisasi_boxplot_per_indikator_terpisah, heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, tampilkan_peta, indikator_deskripsi
+from api.clustering.visualisasi_clustering import (
+    analisis_cluster, ringkasan_cluster, visualisasi_silhouette_full, 
+    visualisasi_tren_tahunan, analisis_silhouette_per_cluster, 
+    get_kategori_silhouette, visualisasi_scatter_per_pasangan_terpisah, 
+    tampilkan_figures_dalam_grid, visualisasi_boxplot_per_indikator_terpisah, 
+    heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, 
+    tampilkan_peta, indikator_deskripsi
+)
 from api.hasil_clustering import fig_to_png_bytes, df_to_fig_table, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
 import io
@@ -12,10 +19,11 @@ from reportlab.lib.styles import getSampleStyleSheet
 import zipfile
 import matplotlib.pyplot as plt
 
+
 def show():
     st.session_state.all_figs = []
         
-    #Title
+    # Title
     st.markdown(
         """
         <h1 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:20px;'>
@@ -25,7 +33,7 @@ def show():
         unsafe_allow_html=True
     )
     
-    #Description
+    # Description
     st.markdown(
         """
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
@@ -37,20 +45,20 @@ def show():
     )
 
     if "user_input" not in st.session_state:
-            st.warning(
-                "Belum ada hasil clustering. "
-                "Silakan lakukan proses clustering di halaman **Clustering Wilayah** dengan menekan tombol di bawah."
-            )
-            if st.button("Mulai Clustering Wilayah"):
-                st.session_state.page = "clustering_wilayah"
-                st.rerun()
-            return
+        st.warning(
+            "Belum ada hasil clustering. "
+            "Silakan lakukan proses clustering di halaman **Clustering Wilayah** dengan menekan tombol di bawah."
+        )
+        if st.button("Mulai Clustering Wilayah"):
+            st.session_state.page = "clustering_wilayah"
+            st.rerun()
+        return
         
     user_input = st.session_state.user_input
     df_hasil = user_input.get("df_hasil")
     vars_ = user_input["fitur_digunakan"]
             
-    #Tabel Hasil clustering
+    # Tabel Hasil clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Tabel Hasil Clustering</p>", unsafe_allow_html=True)
     if df_hasil is not None and not df_hasil.empty:
         st.dataframe(df_hasil)
@@ -59,24 +67,25 @@ def show():
         st.warning("Belum ada hasil clustering. Silakan ulangi proses.")
         st.stop()
     
-    #Ringkasan jumlah anggota per cluster
+    # Ringkasan jumlah anggota per cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Ringkasan Jumlah Anggota per Cluster</p>", unsafe_allow_html=True)
     summary, fig = ringkasan_cluster(
         df_hasil, 
         f"Jumlah Anggota per Cluster ({user_input['metode_clustering']})"
     )
 
-    col1, col2 = st.columns([2,3])
+    col1, col2 = st.columns([2, 3])
 
     with col1:
-        st.pyplot(fig, width= 'content')
+        st.pyplot(fig, width='content')
 
     with col2:
         st.dataframe(summary, hide_index=True)
     
-    #Analisis cluster
+    # Analisis cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Analisis Hasil Cluster</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Rata - Rata Indikator per Cluster</p>", unsafe_allow_html = True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Rata - Rata Indikator per Cluster</p>", unsafe_allow_html=True)
+    
     mean_c, labels, score = analisis_cluster(
         df_hasil,
         fitur_digunakan=st.session_state.user_input["fitur_digunakan"],
@@ -115,13 +124,13 @@ def show():
             
             st.markdown(html_content, unsafe_allow_html=True)
         
-    #Download Tabel Hasil Clustering
+    # Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html = True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
 
     with col1:
-        #Excel
+        # Excel
         xlsx_buf = io.BytesIO()
         with pd.ExcelWriter(xlsx_buf, engine="openpyxl") as writer:
             df_hasil.to_excel(writer, sheet_name="Hasil_Clustering", index=False)
@@ -135,11 +144,11 @@ def show():
             data=xlsx_buf.getvalue(),
             file_name="hasil_clustering.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            width= 'stretch'
+            use_container_width=True
         )
 
     with col2:
-        #PDF
+        # PDF
         pdf_buf = io.BytesIO()
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(
@@ -154,12 +163,12 @@ def show():
         data1 = [df_hasil.columns.tolist()] + df_hasil.astype(str).values.tolist()
         t1 = Table(data1, repeatRows=1)
         t1.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#374151")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("FONTSIZE", (0,0), (-1,-1), 8),
-            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
-            ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.whitesmoke, colors.Color(0.97,0.97,0.97)])
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#374151")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.whitesmoke, colors.Color(0.97, 0.97, 0.97)])
         ]))
         elements.append(t1)
 
@@ -169,40 +178,38 @@ def show():
         data2 = [summary.columns.tolist()] + summary.astype(str).values.tolist()
         t2 = Table(data2, repeatRows=1)
         t2.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#4B5563")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("FONTSIZE", (0,0), (-1,-1), 9),
-            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4B5563")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
         ]))
         elements.append(t2)
         
         elements.append(PageBreak())
         elements.append(Paragraph("Analisis Cluster", styles["Heading2"]))
 
-        #Rata-rata indikator per cluster
         elements.append(Paragraph("Rata-rata indikator per cluster", styles["Heading3"]))
         data3 = [mean_c.reset_index().columns.tolist()] + mean_c.reset_index().astype(str).values.tolist()
         t3 = Table(data3, repeatRows=1)
         t3.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#6B7280")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("FONTSIZE", (0,0), (-1,-1), 8),
-            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#6B7280")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
         ]))
         elements.append(t3)
 
-        #Skema label cluster
         elements.append(Paragraph("Skema Label Cluster", styles["Heading3"]))
         data4 = [["Cluster", "Label"]] + [[str(k), str(v)] for k, v in labels.items()]
         t4 = Table(data4, repeatRows=1)
         t4.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#9CA3AF")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("FONTSIZE", (0,0), (-1,-1), 8),
-            ("GRID", (0,0), (-1,-1), 0.25, colors.grey),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#9CA3AF")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
         ]))
         elements.append(t4)
 
@@ -213,26 +220,29 @@ def show():
             data=pdf_buf.getvalue(),
             file_name="hasil_clustering.pdf",
             mime="application/pdf",
-            width= 'stretch'
+            use_container_width=True
         )
 
     st.markdown("---")
         
-    #Evaluasi cluster
+    # Evaluasi cluster - KEY FIX: Get silhouette score from the plot function
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Evaluasi Hasil Clustering</p>", unsafe_allow_html=True)
     col1, col2 = st.columns([1, 1])
+    
     with col1:
         placeholder = st.empty()
         with placeholder.container():
             loader("Sedang membuat silhouette plot...")
 
+        # FIXED: Pass the true silhouette score from clustering to the plot
         fig_sil = visualisasi_silhouette_full(
             df_hasil[user_input["fitur_digunakan"]].values,
             df_hasil["Cluster"].values,
-            algo=user_input["metode_clustering"]
+            algo=user_input["metode_clustering"],
+            true_silhouette_score=user_input['silhouette']  # Pass the true score
         )
         placeholder.empty()
-        st.pyplot(fig_sil, width= 'content')
+        st.pyplot(fig_sil, width='content')
 
     with col2:
         st.markdown("""
@@ -245,8 +255,9 @@ def show():
         </div>
         """, unsafe_allow_html=True)
         
-        col1, col2 = st.columns(2)
-        with col1:
+        col1_inner, col2_inner = st.columns(2)
+        with col1_inner:
+            # Use the true silhouette score from user_input
             kategori, warna, deskripsi = get_kategori_silhouette(user_input['silhouette'])
             
             st.markdown(
@@ -273,7 +284,7 @@ def show():
                 unsafe_allow_html=True
             )
 
-        with col2:
+        with col2_inner:
             st.markdown(
                 f"""
                 <div style='background-color: #0e1117; 
@@ -341,11 +352,10 @@ def show():
         </div>
         """, unsafe_allow_html=True)
         
-    #Simpan Silhouette Plot
+    # Simpan Silhouette Plot
     st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
 
-
-    #Heatmap Korelasi
+    # Heatmap Korelasi
     st.markdown(
         "<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Korelasi Antar Variabel</p>", 
         unsafe_allow_html=True
@@ -442,10 +452,10 @@ def show():
             </div>
             """, unsafe_allow_html=True)
     
-    #Simpan Heatmap
+    # Simpan Heatmap
     st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
     
-    #Tren fitur tahunan
+    # Tren fitur tahunan
     indikator_rendah_bagus = ["P0", "P1", "P2"]
     tahun_tersedia = df_hasil["Tahun"].nunique()
     tahun_terbaru = df_hasil["Tahun"].max()
@@ -492,7 +502,7 @@ def show():
                 top_n=top_n_input,  
                 judul=judul_tren
             )
-            st.pyplot(fig_tren_web, width= 'stretch')
+            st.pyplot(fig_tren_web, use_container_width=True)
 
             tabel_multi_tahun = (
                 df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
@@ -503,8 +513,7 @@ def show():
             tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru, ascending=ascending)
 
             st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n_input} Kabupaten/Kota</p>", unsafe_allow_html=True)
-            st.dataframe(tabel_multi_tahun, width= 'stretch')
-    
+            st.dataframe(tabel_multi_tahun, use_container_width=True)
     
     top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
 
@@ -547,11 +556,10 @@ def show():
             )
             st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
 
-
-    #Visualisasi Indikator per Cluster
+    # Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
 
-    #Scatterplot Pasangan Indikator
+    # Scatterplot Pasangan Indikator
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Scatterplot Pasangan Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
@@ -571,7 +579,7 @@ def show():
     for title, fig in figures_scatter:
         st.session_state.all_figs.append((title, fig))
 
-    #Distribusi indikator per cluster
+    # Distribusi indikator per cluster
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Boxplot Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
@@ -591,7 +599,7 @@ def show():
     for title, fig in figures_boxplot:
         st.session_state.all_figs.append((title, fig))
 
-    #Peta Hasil Clustering
+    # Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
     shp_path = get_shapefile_from_drive("1V8K5N0hd917R78UbxNNj224upoxEcoKr")
     fig_map_static = None
@@ -610,7 +618,7 @@ def show():
         )
 
         placeholder.empty()
-        st_folium(m, width= 'stretch', height=800, returned_objects=[])
+        st_folium(m, use_container_width=True, height=800, returned_objects=[])
         fig_map_static = buat_peta_statis(gdf_map, labels, cluster_col="Cluster")
 
     except Exception as e:
@@ -619,14 +627,15 @@ def show():
     if fig_map_static is not None:
         st.session_state.all_figs.append(("Peta Hasil Clustering", fig_map_static))
         
-    #Download Visualisasi Clustering
+    # Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html = True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html=True)
+    
     if st.session_state.all_figs:
         col1, col2 = st.columns(2)
 
         with col1:
-            #PNG dalam ZIP
+            # PNG dalam ZIP
             zip_buf = io.BytesIO()
             with zipfile.ZipFile(zip_buf, "w") as zf:
                 for title, fig in st.session_state.all_figs:
@@ -637,11 +646,11 @@ def show():
                 data=zip_buf.getvalue(),
                 file_name="visualisasi_clustering.zip",
                 mime="application/zip",
-                width= 'stretch'
+                use_container_width=True
             )
 
         with col2:
-            #PDF
+            # PDF
             sil_per_cluster = analisis_silhouette_per_cluster(
                 df_hasil[user_input["fitur_digunakan"]].values,
                 df_hasil["Cluster"].values
@@ -659,7 +668,7 @@ def show():
                 data=pdf_all,
                 file_name="visualisasi_clustering.pdf",
                 mime="application/pdf",
-                width= 'stretch'
+                use_container_width=True
             )
     else:
         st.info("Belum ada grafik yang bisa diunduh.")

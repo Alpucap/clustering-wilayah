@@ -13,7 +13,7 @@ import tempfile
 import matplotlib.ticker as mticker
 from itertools import combinations
 
-#Deskripsi Indikator
+# Deskripsi Indikator
 indikator_deskripsi = {
     "AHH_L": "Angka Harapan Hidup Laki-laki (tahun)",
     "AHH_P": "Angka Harapan Hidup Perempuan (tahun)",
@@ -23,50 +23,27 @@ indikator_deskripsi = {
     "P2":   "Indeks Keparahan Kemiskinan"
 }
 
-#Skema Label Cluster & Deskripsi
-# skema_label = {
-#     2:  ["Sejahtera", "Tertinggal"],
-#     3:  ["Sejahtera", "Menengah", "Tertinggal"],
-#     4:  ["Sejahtera", "Menengah Atas", "Menengah Bawah", "Tertinggal"],
-#     5:  ["Sejahtera", "Menengah Atas", "Menengah", "Menengah Bawah", "Tertinggal"],
-#     6:  ["Sejahtera", "Cukup Sejahtera", "Menengah Atas", "Menengah Bawah", "Rentan", "Tertinggal"],
-# }
 
-# deskripsi_label = {
-#     "Sejahtera": "AHH & RLS tinggi; P0/P1/P2 rendah.",
-#     "Cukup Sejahtera": "Mendekati sejahtera; kemiskinan rendah–sedang.",
-#     "Menengah Atas": "Di atas rata-rata; kemiskinan terkendali.",
-#     "Menengah": "Sekitar rata-rata pada semua indikator.",
-#     "Menengah Bawah": "Sedikit di bawah rata-rata; kemiskinan menengah.",
-#     "Rentan": "Indikator positif rendah; kemiskinan tinggi.",
-#     "Tertinggal": "AHH & RLS rendah; P0/P1/P2 tinggi.",
-# }
-
-# def ambil_skema_label(jumlah_k: int):
-#     """Ambil daftar label cluster berdasarkan jumlah K."""
-#     return skema_label.get(jumlah_k, [f"Cluster {i+1}" for i in range(jumlah_k)])
-
-
-#Analisis Cluster
+# Analisis Cluster
 def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
     fitur_positif = [c for c in ["AHH_L", "AHH_P", "RLS"] if c in fitur_digunakan]
     fitur_negatif = [c for c in ["P0", "P1", "P2"] if c in fitur_digunakan]
-    fitur_semua  = fitur_positif + fitur_negatif
+    fitur_semua = fitur_positif + fitur_negatif
 
     if not fitur_semua:
         raise ValueError("Tidak ada fitur yang valid untuk analisis cluster.")
 
     print(f"[Analisis] Algoritma: {algoritma} | Fitur: {fitur_semua}")
 
-    #Jumlah anggota
+    # Jumlah anggota
     jumlah = df["Cluster"].value_counts().sort_index()
     print("Jumlah anggota per cluster:\n", jumlah, "\n")
 
-    #Rata-rata indikator per cluster
+    # Rata-rata indikator per cluster
     rata_c = df.groupby("Cluster")[fitur_semua].mean().round(3)
     print("Rata-rata indikator per cluster:\n", rata_c, "\n")
 
-    #Skor gabungan
+    # Skor gabungan (for labeling purposes, NOT silhouette)
     if fitur_positif and fitur_negatif:
         skor = (rata_c[fitur_positif].mean(axis=1) - rata_c[fitur_negatif].mean(axis=1))
     elif fitur_positif:
@@ -76,16 +53,15 @@ def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
 
     ranking = skor.sort_values(ascending=False)
     urutan = ranking.index.tolist()
-    k = len(ranking)
 
-    # Label cluster sederhana tanpa deskripsi
+    # Label cluster sederhana
     label_cluster = {c: f"Cluster {c}" for c in urutan}
     print("Label cluster:", label_cluster, "\n")
 
     return rata_c, label_cluster, skor
 
 
-#Ringkasan Cluster
+# Ringkasan Cluster
 def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
     s = df["Cluster"].astype("Int64")
     hitung = s.value_counts().sort_index()
@@ -122,7 +98,7 @@ def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
     return ringkasan, fig
 
 
-#Visualisasi Evaluasi
+# Visualisasi Evaluasi
 def visualisasi_evaluasi(df_eval: pd.DataFrame):
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for algo, subset in df_eval.groupby("Algoritma"):
@@ -139,6 +115,7 @@ def visualisasi_evaluasi(df_eval: pd.DataFrame):
     plt.tight_layout()
     return fig
 
+
 def get_kategori_silhouette(score):
     if score >= 0.71:
         return "Struktur Kuat", "#28a745", "Cluster terpisah dengan sangat baik"
@@ -149,10 +126,15 @@ def get_kategori_silhouette(score):
     else:
         return "Tidak Ada Struktur", "#dc3545", "Cluster tidak membentuk struktur yang jelas"
 
-#Visualisasi Silhouette
-def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndarray, algo: str = ""):
+
+# Visualisasi Silhouette
+def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndarray, algo: str = "", true_silhouette_score: float = None):
     nilai_sample = silhouette_samples(data_matriks, label_cluster)
-    nilai_rata   = silhouette_score(data_matriks, label_cluster)
+    
+    if true_silhouette_score is not None:
+        nilai_rata = true_silhouette_score
+    else:
+        nilai_rata = silhouette_score(data_matriks, label_cluster)
 
     n_clusters = len(np.unique(label_cluster))
     y_bawah = 5
@@ -183,21 +165,20 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     ax1.set_xlabel("Nilai Silhouette Coefficient", fontsize=10)
     ax1.set_ylabel("Cluster", fontsize=10)
 
-    #Garis rata-rata silhouette
-    ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
+    # Garis rata-rata silhouette (using true score)
     ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
     
     ax1.text(
         nilai_rata, 
         -5,
-        f"{nilai_rata:.2f}", 
+        f"{nilai_rata:.4f}", 
         color="red", 
         fontsize=9, 
         ha="left", 
         va="bottom"
     )
     
-    #Garis nol
+    # Garis nol
     ax1.axvline(x=0, color="black", linestyle="--", linewidth=1)
 
     ax1.set_yticks([])
@@ -205,7 +186,9 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     ax1.tick_params(axis="both", labelsize=9)
 
     plt.tight_layout(pad=1)
+    
     return fig
+
 
 def analisis_silhouette_per_cluster(X, labels):
     nilai_sample = silhouette_samples(X, labels)
@@ -214,7 +197,8 @@ def analisis_silhouette_per_cluster(X, labels):
         hasil[c] = np.mean(nilai_sample[labels == c])
     return hasil
 
-#Visualisasi Sebaran (pairplot)
+
+# Visualisasi Boxplot
 def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if not kolom:
@@ -246,16 +230,11 @@ def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
 
 
 def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
-    """
-    Membuat scatterplot untuk setiap pasangan indikator
-    Mengembalikan list of figures yang terpisah
-    """
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if len(kolom) < 2:
         raise ValueError("Minimal 2 fitur diperlukan untuk scatterplot.")
     
     pasangan = list(combinations(kolom, 2))
-    
     figures = []
     
     for fitur_x, fitur_y in pasangan:
@@ -265,7 +244,8 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
         
         for cluster in sorted(df["Cluster"].unique()):
             data_cluster = df[df["Cluster"] == cluster]
-            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], alpha=0.6, s=30, label=f"Cluster {cluster}")
+            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], 
+                      alpha=0.6, s=30, label=f"Cluster {cluster}")
         
         ax.set_xlabel(deskripsi_x, fontsize=10)
         ax.set_ylabel(deskripsi_y, fontsize=10)
@@ -279,15 +259,13 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
     return figures
 
 
-#Fungsi helper untuk menampilkan figures dalam grid di Streamlit
 def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
     n_figs = len(figures)
-    
     idx = 0
+    
     while idx < n_figs:
         remaining = n_figs - idx
         cols_in_row = min(n_cols, remaining)
-
         cols = st.columns(n_cols)
 
         if cols_in_row < n_cols:
@@ -297,22 +275,22 @@ def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
             for i in range(cols_in_row):
                 with cols[offset + i]:
                     title, fig = figures[idx]
-                    st.pyplot(fig, width= 'stretch')
+                    st.pyplot(fig, width='stretch')
                     idx += 1
         else:
             for i in range(n_cols):
                 with cols[i]:
                     title, fig = figures[idx]
-                    st.pyplot(fig, width= 'stretch')
+                    st.pyplot(fig, width='stretch')
                     idx += 1
 
-#Tren indikator per tahun
-def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col="Nama Wilayah", judul=None):
+
+def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", 
+                             wilayah_col="Nama Wilayah", judul=None):
     if tahun_col not in df.columns or wilayah_col not in df.columns:
         raise ValueError("Kolom 'Tahun' atau 'Nama Wilayah' tidak ditemukan di dataset.")
     
     deskripsi = indikator_deskripsi.get(fitur, fitur)
-    
     df_topN = df.copy()
     
     tahun_max = df_topN[tahun_col].max()
@@ -340,7 +318,6 @@ def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col
     return fig
 
 
-#Heatmap korelasi indikator
 def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar Variabel"):
     corr = df[variabel].corr(method="pearson")
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -360,13 +337,12 @@ def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar
     return fig
 
 
-#Normalisasi Nama Wilayah
 def normalisasi_nama(nama):
     if pd.isna(nama):
         return nama
     return str(nama).upper().strip()
 
-#Read shapefile
+
 def get_shapefile_from_drive(file_id: str):
     temp_dir = tempfile.mkdtemp(prefix="shapefile_")
     temp_zip = os.path.join(temp_dir, "shapefile.zip")
@@ -383,7 +359,7 @@ def get_shapefile_from_drive(file_id: str):
 
     raise FileNotFoundError("File .shp tidak ditemukan setelah ekstraksi")
 
-#Persiapan Shapefile
+
 def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict = None):
     if path.endswith(".gdb"):
         gdf = gpd.read_file(path, layer="ADMINISTRASI_AR_KABKOTA")
@@ -392,15 +368,12 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
 
     gdf = gdf.to_crs(4326)
 
-    #Tentukan kolom nama wilayah di shapefile
     kolom_nama = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
 
-    #Buat key join (upper & strip)
     gdf["key_join"] = gdf[kolom_nama].apply(normalisasi_nama)
     df_h = df_hasil.copy()
     df_h["key_join"] = df_h["Nama Wilayah"].apply(normalisasi_nama)
     
-    #Data multi tahun, hitung rata-rata
     if "Tahun" in df_h.columns and df_h["Tahun"].nunique() > 1:
         numeric_cols = df_h.select_dtypes(include=[np.number]).columns.tolist()
         numeric_cols = [c for c in numeric_cols if c != "Cluster"] 
@@ -411,7 +384,6 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
         
         df_h = df_h.groupby("key_join", as_index=False).agg(agg_dict)
 
-    #Mapping manual default (bisa diperluas)
     if mapping_manual is None:
         mapping_manual = {
             "KOTA ADM. JAKARTA SELATAN": "KOTA JAKARTA SELATAN",
@@ -436,11 +408,9 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
             "MINAHASA SELATAN/BOLAANG MONGONDOW TIMUR": "MINAHASA SELATAN"
         }
 
-    #Terapkan mapping manual ke kedua sisi
     gdf["key_join"] = gdf["key_join"].replace(mapping_manual)
     df_h["key_join"] = df_h["key_join"].replace(mapping_manual)
 
-    #Fuzzy mapping (opsional, threshold 85)
     nama_shp = gdf["key_join"].unique()
     nama_data = df_h["key_join"].unique()
 
@@ -455,13 +425,13 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
     df_h["key_join"] = df_h["key_join"].replace(mapping_otomatis)
 
     gdf_gabung = gdf.merge(df_h, on="key_join", how="inner")
-
     gdf_gabung["geometry"] = gdf_gabung["geometry"].simplify(0.08, preserve_topology=True)
 
     return gdf_gabung
 
-#Peta Folium
-def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, nama_algo: str = "iK-Median", fitur_digunakan=None):
+
+def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
+                   nama_algo: str = "iK-Median", fitur_digunakan=None):
     if fitur_digunakan is None:
         fitur_digunakan = []
 
@@ -473,10 +443,9 @@ def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
     }
 
     nama_kolom_namobj = "NAMOBJ" if "NAMOBJ" in gdf.columns else gdf.columns[0]
-    tooltip_fields  = [nama_kolom_namobj] + [f for f in fitur_digunakan if f in gdf.columns] + ["Cluster"]
+    tooltip_fields = [nama_kolom_namobj] + [f for f in fitur_digunakan if f in gdf.columns] + ["Cluster"]
     tooltip_aliases = ["Wilayah"] + [indikator_deskripsi.get(f, f) for f in fitur_digunakan] + ["Cluster"]
 
-    #Peta dasar
     m = folium.Map(
         location=[-2.5, 118],
         zoom_start=5,
