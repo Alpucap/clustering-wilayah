@@ -37,8 +37,12 @@ def show():
     st.markdown(
         """
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
-            Berikut merupakan hasil pengelompokan kota/kabupaten di Indonesia yang disajikan dalam bentuk tabel, berbagai visualisasi, 
-            serta pemetaan yang interaktif untuk membantu memahami pola distribusi antarwilayah.
+        Halaman ini menyajikan ringkasan hasil pengelompokan kabupaten/kota di Indonesia 
+        berdasarkan indikator yang dipilih. 
+        Analisis dilakukan untuk mengidentifikasi kesamaan karakteristik antarwilayah, 
+        sehingga pola umum kondisi wilayah dapat terlihat dengan lebih jelas.
+        Hasil disajikan dalam bentuk tabel, visualisasi, serta peta interaktif 
+        agar mudah dipahami dan diinterpretasikan.
         </p>
         """,
         unsafe_allow_html=True
