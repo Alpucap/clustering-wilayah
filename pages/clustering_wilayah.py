@@ -22,23 +22,74 @@ def show():
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
             Setiap kota dan kabupaten di Indonesia memiliki kondisi sosial dan tingkat kemiskinan yang berbeda-beda. Perbedaan ini sering kali menimbulkan kesenjangan antarwilayah, sehingga penting untuk melihat bagaimana pola tersebut terbentuk. 
             Melalui pendekatan berbasis data, gambaran mengenai kondisi wilayah dapat dieksplorasi secara lebih jelas.
-            <br>
-            Silakan unggah dataset sesuai format yang tersedia untuk mulai mengeksplorasi kota/kabupaten di Indonesia.
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
-
-    #Upload File
-    st.markdown(
-        """
-        <p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'> 
-            Upload Dataset
         </p>
         """,
         unsafe_allow_html=True
     )
     
+    #Petunjuk Penggunaan
+    with st.expander("Petunjuk Penggunaan Website", expanded=False):
+        st.markdown("""
+        ### Alur Penggunaan Sistem
+
+        **1. Upload Dataset**
+        - Unggah dataset sesuai template Excel yang disediakan
+        - Pastikan seluruh kolom terisi dan tidak ada data kosong
+        - Dataset akan divalidasi secara otomatis oleh sistem
+
+        **2. Pilih Metode Clustering**
+        - **Intelligent K-Median** → metode otomatis dengan jumlah cluster optimal
+        - **K-Medoids** → memungkinkan pengguna menentukan jumlah cluster (K)
+
+        **3. Tentukan Fitur Analisis**
+        - Gunakan **preset fitur** untuk kombinasi indikator yang telah disarankan
+        - Atau pilih fitur secara manual sesuai kebutuhan analisis
+        - Minimal satu fitur wajib dipilih
+
+        **4. Tentukan Rentang Tahun**
+        - Pilih tahun awal dan akhir berdasarkan dataset
+        - Data akan difilter dan digabung sesuai rentang tahun
+
+        **5. Pengaturan Tambahan**
+        - Untuk K-Medoids, pengguna dapat menyesuaikan jumlah cluster (K)
+        - Pilih metrik jarak yang sesuai (Manhattan atau Euclidean)
+
+        **6. Jalankan Clustering**
+        - Klik tombol **Jalankan Clustering**
+        - Sistem akan memproses data dan menampilkan hasil clustering
+
+        ---
+        💡 **Tips Penggunaan**
+        - Gunakan pengaturan default untuk hasil yang optimal
+        - Kombinasi indikator pendidikan dan kemiskinan memberikan pola cluster yang lebih stabil
+        - Rentang tahun yang lebih panjang memberikan gambaran kondisi wilayah yang lebih representatif
+        """)
+
+        st.markdown(
+            "<p style='text-align:center; font-size:16px; margin-top:24px;'>"
+            "Butuh penjelasan lebih lengkap? Klik tombol di dibawah ini"
+            "</p>",
+            unsafe_allow_html=True
+        )
+
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            if st.button("Petunjuk Penggunaan Website Lengkap", use_container_width=True):
+                st.session_state.page = "petunjuk_penggunaan_website"
+                st.rerun()
+
+    #Upload File
+    st.markdown(
+        """
+        <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+            Upload Dataset
+        </p>
+        <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+        Silakan unggah dataset sesuai format yang tersedia untuk mulai mengeksplorasi kota/kabupaten di Indonesia.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
     #Pilihan sumber dataset
     dataset_option = st.radio(
         "Pilih sumber dataset:",
@@ -118,6 +169,9 @@ def show():
             <p style='padding-top:16px; padding-bottom:4px; font-size: 20px; font-weight: bold;'> 
                 Dataset yang digunakan
             </p>
+            <p style='margin-top:4px; margin-bottom:12px; color:#6c757d; font-size:16px;'>
+                Berikut adalah dataset yang berhasil diunggah dan siap digunakan.
+            </p>
             """,
             unsafe_allow_html=True
         )
@@ -126,7 +180,18 @@ def show():
         
     
     #Pilih Metode
-    st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Metode</p>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+            Pilih Metode
+        </p>
+        <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+        Metode clustering menentukan cara sistem mengelompokkan wilayah berdasarkan kemiripan indikator.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+
     metode_clustering = st.selectbox(
         "Pilih Metode Clustering", 
         ["Intelligent K-Median", "K-Medoids"],
@@ -152,7 +217,18 @@ def show():
         ["Persentase Penduduk Miskin (P0)", "Indeks Kedalaman Kemiskinan (P1)", "Indeks Keparahan Kemiskinan (P2)"]
     ]
     
-    st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Fitur</p>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+            Pilih Fitur
+        </p>
+        <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+        Fitur membantu sistem membandingkan wilayah berdasarkan indikator yang dipilih.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+    
     mode_fitur = st.radio("Opsi pemilihan fitur:", ["Gunakan Preset", "Pilih Sendiri (Custom)"], horizontal=True)
 
     if mode_fitur == "Gunakan Preset":
@@ -178,7 +254,17 @@ def show():
         fitur_digunakan = [mapping_fitur[label] for label in fitur_labels]
 
     #Pilih Tahun
-    st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Tahun</p>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+            Pilih Tahun
+        </p>
+        <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+        Rentang tahun menentukan periode data yang dianalisis dalam proses clustering.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
     if df_clustering_wilayah is not None and "Tahun" in df_clustering_wilayah.columns:
         tahun_list = sorted(df_clustering_wilayah["Tahun"].dropna().astype(int).unique())
@@ -198,7 +284,17 @@ def show():
     #Pilih Jumlah Cluster
     jumlah_cluster_optimal = 2
     if metode_clustering == "K-Medoids":
-        st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Jumlah Cluster (K)</p>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+                Pilih Jumlah Cluster (K)
+            </p>
+            <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+            Jumlah cluster menentukan banyaknya kelompok wilayah yang akan dibentuk.
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
         
         mode_k = st.radio(
             "Pilih mode penentuan jumlah cluster:",
@@ -231,7 +327,18 @@ def show():
         jumlah_cluster = None
 
     #Pilih Metrik Jarak
-    st.markdown("<p style='padding-top:16px; padding-bottom:4px; font-size: 28px; font-weight: bold;'>Pilih Metrik Jarak</p>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style='padding-top:16px; font-size: 28px; font-weight: bold;'> 
+            Pilih Metrik Jarak
+        </p>
+        <p style='color:#6c757d; font-size:16px; padding-bottom:4px;'>
+        Metrik jarak digunakan untuk mengukur tingkat kemiripan antarwilayah berdasarkan fitur terpilih.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+
     if metode_clustering == "Intelligent K-Median":
         default_index = 0 #manhattan
         key_metric = "metric_ikmedian"
@@ -287,19 +394,22 @@ def show():
         <li>Metrik Jarak: {metrik_jarak}</li>
         </ul>
         """, unsafe_allow_html=True)
+        
         st.markdown(
             """
             <p style='padding-top:16px; padding-bottom:4px; font-size: 20px; font-weight: bold;'> 
             Dataset yang dipilih
+            </p>
+            <p style='margin-top:4px; margin-bottom:12px; color:#6c757d; font-size:16px;'>
+                Berikut adalah dataset berdasarkan parameter analisis yang dipilih.
             </p>
             """,
             unsafe_allow_html=True
         )
         st.dataframe(df_clustering_filtered)
         st.write(f"Dataset berisi **{df_clustering_filtered.shape[0]} baris** dan **{df_clustering_filtered.shape[1]} kolom**.")
-        st.info(
-            "Jika pilihan sudah sesuai, silakan klik tombol **Jalankan Clustering** di bawah "
-            "untuk memproses dataset dan menampilkan hasil analisis."
+        st.success(
+            "Jika semua parameter sudah sesuai, silakan lanjutkan dengan menjalankan proses clustering."
         )
     
         #Jalankan Clustering

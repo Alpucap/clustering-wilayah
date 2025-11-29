@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 def show():
     st.session_state.all_figs = []
         
-    # Title
+    #Title
     st.markdown(
         """
         <h1 style='text-align: center; font-weight: bold; padding-top:30px; padding-bottom:20px;'>
@@ -33,7 +33,7 @@ def show():
         unsafe_allow_html=True
     )
     
-    # Description
+    #Description
     st.markdown(
         """
         <p style='text-align: justify; padding-top:20px; padding-bottom:20px;'>
@@ -62,8 +62,14 @@ def show():
     df_hasil = user_input.get("df_hasil")
     vars_ = user_input["fitur_digunakan"]
             
-    # Tabel Hasil clustering
+    #Tabel Hasil clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Tabel Hasil Clustering</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:16px; text-align:center;'>"
+        "Tabel ini menampilkan hasil pengelompokan setiap kabupaten/kota berdasarkan parameter yang telah dipilih."
+        "</p>",
+        unsafe_allow_html=True
+    )
     if df_hasil is not None and not df_hasil.empty:
         st.dataframe(df_hasil)
         st.caption("Kolom **Cluster** menunjukkan hasil pengelompokan wilayah.")
@@ -71,24 +77,55 @@ def show():
         st.warning("Belum ada hasil clustering. Silakan ulangi proses.")
         st.stop()
     
-    # Ringkasan jumlah anggota per cluster
+    #Ringkasan jumlah anggota per cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Ringkasan Jumlah Anggota per Cluster</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:16px; text-align:center; margin-bottom:16px;'>"
+        "Ringkasan ini memperlihatkan jumlah kabupaten/kota pada setiap cluster."
+        "</p>",
+        unsafe_allow_html=True
+    )
     summary, fig = ringkasan_cluster(
         df_hasil, 
         f"Jumlah Anggota per Cluster ({user_input['metode_clustering']})"
     )
 
-    col1, col2 = st.columns([2, 3])
+    col1, col2 = st.columns([3, 3])
 
     with col1:
         st.pyplot(fig, width='content')
 
     with col2:
-        st.dataframe(summary, hide_index=True)
+        total = summary.iloc[:, 1].sum()
+
+        cols = st.columns(len(summary))
+
+        for i, (idx, row) in enumerate(summary.iterrows()):
+            jumlah = row.iloc[1]
+            persentase = (jumlah / total) * 100
+            
+            with cols[i]:
+                with st.container(border=True):
+                    st.markdown(f"**Cluster {idx}**")
+                    st.markdown(
+                        f"<p style='margin:4px 0;'>"
+                        f"<span style='font-size:36px; font-weight:bold;'>{jumlah}</span> "
+                        f"<span style='font-size:16px;'>Kabupaten/Kota</span>"
+                        f"</p>", 
+                        unsafe_allow_html=True
+                    )
+                    st.markdown(f"{persentase:.1f}%")
     
-    # Analisis cluster
+    
+    #Analisis cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Analisis Hasil Cluster</p>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Rata - Rata Indikator per Cluster</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:4px; font-weight:bold;'>Rata - Rata Indikator per Cluster</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:16px; text-align:center; margin-bottom:24px;'>"
+        "Nilai berikut menggambarkan kondisi rata-rata setiap cluster berdasarkan indikator yang digunakan."
+        "</p>",
+        unsafe_allow_html=True
+    )
     
     mean_c, labels, score = analisis_cluster(
         df_hasil,
@@ -229,7 +266,7 @@ def show():
 
     st.markdown("---")
         
-    # Evaluasi cluster - KEY FIX: Get silhouette score from the plot function
+    #Evaluasi cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Evaluasi Hasil Clustering</p>", unsafe_allow_html=True)
     col1, col2 = st.columns([1, 1])
     
@@ -238,12 +275,11 @@ def show():
         with placeholder.container():
             loader("Sedang membuat silhouette plot...")
 
-        # FIXED: Pass the true silhouette score from clustering to the plot
         fig_sil = visualisasi_silhouette_full(
             df_hasil[user_input["fitur_digunakan"]].values,
             df_hasil["Cluster"].values,
             algo=user_input["metode_clustering"],
-            true_silhouette_score=user_input['silhouette']  # Pass the true score
+            true_silhouette_score=user_input['silhouette']
         )
         placeholder.empty()
         st.pyplot(fig_sil, width='content')
@@ -261,7 +297,6 @@ def show():
         
         col1_inner, col2_inner = st.columns(2)
         with col1_inner:
-            # Use the true silhouette score from user_input
             kategori, warna, deskripsi = get_kategori_silhouette(user_input['silhouette'])
             
             st.markdown(
@@ -356,10 +391,9 @@ def show():
         </div>
         """, unsafe_allow_html=True)
         
-    # Simpan Silhouette Plot
     st.session_state.all_figs.append(("Silhouette Plot", fig_sil))
 
-    # Heatmap Korelasi
+    #Heatmap Korelasi
     st.markdown(
         "<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Korelasi Antar Variabel</p>", 
         unsafe_allow_html=True
@@ -456,19 +490,24 @@ def show():
             </div>
             """, unsafe_allow_html=True)
     
-    # Simpan Heatmap
     st.session_state.all_figs.append(("Heatmap Korelasi", fig_heatmap))
     
-    # Tren fitur tahunan
+    #Tren fitur tahunan
     indikator_rendah_bagus = ["P0", "P1", "P2"]
     tahun_tersedia = df_hasil["Tahun"].nunique()
     tahun_terbaru = df_hasil["Tahun"].max()
-    top_n = 10  
 
     if tahun_tersedia > 1:
-        col1, col2, col3 = st.columns([1, 3, 1])
+        col1, col2, col3 = st.columns([1, 10, 1])
         with col2:
             st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Tren Indikator Per Tahun</p>", unsafe_allow_html=True)
+            
+            st.markdown(
+                "<p style='color:#9ca3af; font-size:16px; text-align:center; margin-bottom:24px;'>"
+                "Visualisasi ini menunjukkan bagaimana perubahan indikator terjadi dari tahun ke tahun"
+                "</p>",
+                unsafe_allow_html=True
+            )
 
             col1, col2 = st.columns([2, 1])
             with col1:
@@ -498,26 +537,41 @@ def show():
             wilayah_top = ranking["Nama Wilayah"]
 
             deskripsi = indikator_deskripsi.get(fitur_dipilih, fitur_dipilih)
-            judul_tren = f"{top_n_input} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur_dipilih in indikator_rendah_bagus else 'tertinggi'}"
+        
+            col_graph, col_table = st.columns([3, 2])
 
-            fig_tren_web = visualisasi_tren_tahunan(
-                df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)],
-                fitur_dipilih,
-                top_n=top_n_input,  
-                judul=judul_tren
-            )
-            st.pyplot(fig_tren_web, use_container_width=True)
+            with col_graph:
+                judul_tren = f"{top_n_input} Kabupaten/Kota dengan {deskripsi} " \
+                            f"{'terendah' if ascending else 'tertinggi'}"
+                
+                fig_tren = visualisasi_tren_tahunan(
+                    df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)],
+                    fitur_dipilih,
+                    top_n=top_n_input,
+                    judul=judul_tren
+                )
+                st.pyplot(fig_tren, use_container_width=True)
 
-            tabel_multi_tahun = (
-                df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
-                .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur_dipilih)
-            )
-            
-            tahun_terbaru = tabel_multi_tahun.columns.max()
-            tabel_multi_tahun = tabel_multi_tahun.sort_values(by=tahun_terbaru, ascending=ascending)
+            with col_table:
+                tabel_multi_tahun = (
+                    df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
+                    .pivot_table(index="Nama Wilayah", columns="Tahun", values=fitur_dipilih)
+                )
 
-            st.markdown(f"<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:24px;'>Nilai {deskripsi} per Tahun untuk {top_n_input} Kabupaten/Kota</p>", unsafe_allow_html=True)
-            st.dataframe(tabel_multi_tahun, use_container_width=True)
+                tabel_multi_tahun = tabel_multi_tahun.sort_values(
+                    by=tabel_multi_tahun.columns.max(),
+                    ascending=ascending
+                )
+
+                st.markdown(
+                    f"<p style='font-size:14px; font-weight:bold; margin-bottom:8px;'>"
+                    f"Ringkasan Nilai {deskripsi}"
+                    "</p>",
+                    unsafe_allow_html=True
+                )
+
+                st.dataframe(tabel_multi_tahun, use_container_width=True)
+
     
     top_n_pdf = st.session_state.get('top_n_for_pdf', 10)
 
@@ -560,10 +614,10 @@ def show():
             )
             st.session_state.all_figs.append((f"Tabel Tren {deskripsi}", tabel_fig))
 
-    # Visualisasi Indikator per Cluster
+    #Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
 
-    # Scatterplot Pasangan Indikator
+    #Scatterplot Pasangan Indikator
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Scatterplot Pasangan Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
@@ -576,14 +630,14 @@ def show():
     )
     placeholder.empty()
 
-    col1, col2, col3 = st.columns([1, 6, 1])
+    col1, col2, col3 = st.columns([1, 10, 1])
     with col2:
         tampilkan_figures_dalam_grid(st, figures_scatter, n_cols=3)
     
     for title, fig in figures_scatter:
         st.session_state.all_figs.append((title, fig))
 
-    # Distribusi indikator per cluster
+    #Distribusi indikator per cluster
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Boxplot Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
     placeholder = st.empty()
     with placeholder.container():
@@ -596,7 +650,7 @@ def show():
     )
     placeholder.empty()
 
-    col1, col2, col3 = st.columns([1, 6, 1])
+    col1, col2, col3 = st.columns([1, 10, 1])
     with col2:
         tampilkan_figures_dalam_grid(st, figures_boxplot, n_cols=3)
     
