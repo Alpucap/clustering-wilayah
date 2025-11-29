@@ -98,23 +98,26 @@ def show():
     with col2:
         total = summary.iloc[:, 1].sum()
 
-        cols = st.columns(len(summary))
-
-        for i, (idx, row) in enumerate(summary.iterrows()):
-            jumlah = row.iloc[1]
-            persentase = (jumlah / total) * 100
+        for row_start in range(0, len(summary), 3):
+            cols = st.columns(min(3, len(summary) - row_start))
             
-            with cols[i]:
-                with st.container(border=True):
-                    st.markdown(f"**Cluster {idx}**")
-                    st.markdown(
-                        f"<p style='margin:4px 0;'>"
-                        f"<span style='font-size:36px; font-weight:bold;'>{jumlah}</span> "
-                        f"<span style='font-size:16px;'>Kabupaten/Kota</span>"
-                        f"</p>", 
-                        unsafe_allow_html=True
-                    )
-                    st.markdown(f"{persentase:.1f}%")
+            for col_idx, i in enumerate(range(row_start, min(row_start + 3, len(summary)))):
+                idx = summary.index[i]
+                row = summary.iloc[i]
+                jumlah = row.iloc[1]
+                persentase = (jumlah / total) * 100
+                
+                with cols[col_idx]:
+                    with st.container(border=True):
+                        st.markdown(f"**Cluster {idx}**")
+                        st.markdown(
+                            f"<p style='margin:4px 0;'>"
+                            f"<span style='font-size:36px; font-weight:bold;'>{jumlah}</span> "
+                            f"<span style='font-size:16px;'>Kabupaten/Kota</span>"
+                            f"</p>", 
+                            unsafe_allow_html=True
+                        )
+                        st.markdown(f"{persentase:.1f}%")
     
     
     #Analisis cluster
@@ -165,13 +168,13 @@ def show():
             
             st.markdown(html_content, unsafe_allow_html=True)
         
-    # Download Tabel Hasil Clustering
+    #Download Tabel Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Hasil Clustering</p>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Tabel hasil clustering yang telah ditampilkan dapat diunduh menggunakan format Xlsx maupun PDF.</p>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
 
     with col1:
-        # Excel
+        #Excel
         xlsx_buf = io.BytesIO()
         with pd.ExcelWriter(xlsx_buf, engine="openpyxl") as writer:
             df_hasil.to_excel(writer, sheet_name="Hasil_Clustering", index=False)
@@ -189,7 +192,7 @@ def show():
         )
 
     with col2:
-        # PDF
+        #PDF
         pdf_buf = io.BytesIO()
         styles = getSampleStyleSheet()
         doc = SimpleDocTemplate(
@@ -616,9 +619,17 @@ def show():
 
     #Visualisasi Indikator per Cluster
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Visualisasi Indikator per Cluster</p>", unsafe_allow_html=True)
-
+    
     #Scatterplot Pasangan Indikator
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Scatterplot Pasangan Indikator per Cluster</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:15px; text-align:center; max-width:760px; margin: 0 auto 12px;'>"
+        "Scatterplot berikut digunakan untuk melihat hubungan antar pasangan indikator "
+        "serta sejauh mana pemisahan cluster dapat diamati secara visual."
+        "</p>",
+        unsafe_allow_html=True
+    )
+    
     placeholder = st.empty()
     with placeholder.container():
         loader("Sedang membuat scatterplot...")
@@ -634,11 +645,24 @@ def show():
     with col2:
         tampilkan_figures_dalam_grid(st, figures_scatter, n_cols=3)
     
+        st.caption(
+            "Pola sebaran titik dan perbedaan warna menunjukkan bagaimana masing-masing wilayah "
+            "terkelompok berdasarkan indikator yang digunakan."
+        )
+    
     for title, fig in figures_scatter:
         st.session_state.all_figs.append((title, fig))
 
     #Distribusi indikator per cluster
     st.markdown("<p style='text-align:center; font-size:18px; font-weight:bold; margin-top:32px;'>Boxplot Distribusi Indikator per Cluster</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:15px; text-align:center; max-width:760px; margin: 0 auto 12px;'>"
+        "Boxplot berikut memperlihatkan variasi nilai indikator di dalam setiap cluster, "
+        "termasuk sebaran data, nilai tengah, dan kemungkinan adanya outlier."
+        "</p>",
+        unsafe_allow_html=True
+    )
+    
     placeholder = st.empty()
     with placeholder.container():
         loader("Sedang membuat boxplot indikator...")
@@ -654,10 +678,15 @@ def show():
     with col2:
         tampilkan_figures_dalam_grid(st, figures_boxplot, n_cols=3)
     
+        st.caption(
+            "Rentang box menggambarkan sebaran nilai indikator dalam satu cluster, "
+            "sementara titik di luar box menunjukkan kemungkinan nilai ekstrem."
+        )
     for title, fig in figures_boxplot:
         st.session_state.all_figs.append((title, fig))
 
-    # Peta Hasil Clustering
+            
+    #Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
     shp_path = get_shapefile_from_drive("1V8K5N0hd917R78UbxNNj224upoxEcoKr")
     fig_map_static = None
