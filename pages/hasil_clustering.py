@@ -551,7 +551,8 @@ def show():
                     df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)],
                     fitur_dipilih,
                     top_n=top_n_input,
-                    judul=judul_tren
+                    judul=judul_tren,
+                    ascending=ascending
                 )
                 st.pyplot(fig_tren, use_container_width=True)
 
@@ -593,7 +594,7 @@ def show():
             df_tren_top = df_hasil[df_hasil["Nama Wilayah"].isin(wilayah_top)]
 
             judul_tren = f"{top_n_pdf} Kabupaten/Kota dengan {deskripsi} {'terendah' if fitur in indikator_rendah_bagus else 'tertinggi'}"
-            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren)
+            fig_tren_full = visualisasi_tren_tahunan(df_tren_top, fitur, top_n=top_n_pdf, judul=judul_tren, ascending=ascending)
 
             st.session_state.all_figs.append((f"Tren {deskripsi}", fig_tren_full))
 

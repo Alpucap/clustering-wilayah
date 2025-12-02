@@ -285,38 +285,66 @@ def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
                     idx += 1
 
 
-def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", 
-                             wilayah_col="Nama Wilayah", judul=None):
+def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col="Nama Wilayah", judul=None, ascending=True):
     if tahun_col not in df.columns or wilayah_col not in df.columns:
-        raise ValueError("Kolom 'Tahun' atau 'Nama Wilayah' tidak ditemukan di dataset.")
-    
+        raise ValueError("Kolom 'Tahun' atau 'Nama Wilayah' tidak ditemukan.")
+
     deskripsi = indikator_deskripsi.get(fitur, fitur)
-    df_topN = df.copy()
-    
-    tahun_max = df_topN[tahun_col].max()
-    df_tahun_max = df_topN[df_topN[tahun_col] == tahun_max]
-    urutan_wilayah = df_tahun_max.sort_values(fitur, ascending=False)[wilayah_col].tolist()
-    
-    fig, ax = plt.subplots(figsize=(9, 6))
-    
-    for wilayah in urutan_wilayah:
-        subset = df_topN[df_topN[wilayah_col] == wilayah]
-        subset_sorted = subset.sort_values(tahun_col)
-        ax.plot(subset_sorted[tahun_col], subset_sorted[fitur], marker="o", label=wilayah)
-    
-    ax.set_title(
-        judul or f"{top_n} Kabupaten/Kota dengan Nilai {deskripsi} Tertinggi",
-        fontsize=13, pad=15
+    df_plot = df.copy()
+
+    nilai_rata = (
+        df_plot
+        .groupby(wilayah_col)[fitur]
+        .mean()
     )
+
+    urutan_wilayah = (
+        nilai_rata
+        .sort_values(ascending=ascending)
+        .head(top_n)
+        .index
+        .tolist()
+    )
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    for wilayah in urutan_wilayah:
+        data = (
+            df_plot[df_plot[wilayah_col] == wilayah]
+            .sort_values(tahun_col)
+        )
+
+        ax.plot(
+            data[tahun_col],
+            data[fitur],
+            marker="o",
+            linewidth=2,
+            label=wilayah
+        )
+
+    arah = "terendah" if ascending else "tertinggi"
+
+    ax.set_title(
+        judul or f"{top_n} Kabupaten/Kota dengan {deskripsi} {arah} (rata-rata periode)",
+        fontsize=13,
+        pad=15
+    )
+
     ax.set_xlabel("Tahun")
     ax.set_ylabel(deskripsi)
-    
     ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
-    ax.legend(fontsize=8, bbox_to_anchor=(1.05, 1), loc="upper left")
     ax.grid(True, linestyle="--", alpha=0.6)
+
+    ax.legend(
+        fontsize=8,
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        title="Wilayah",
+        title_fontsize=9
+    )
+
     plt.tight_layout()
     return fig
-
 
 def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar Variabel"):
     corr = df[variabel].corr(method="pearson")
