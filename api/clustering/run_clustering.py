@@ -6,7 +6,7 @@ from api.clustering.evaluasi_clustering import evaluasi_cluster
 
 #Method untuk menjalankan clustering
 def run_clustering(df, fitur_digunakan, metode_clustering, jumlah_cluster, metrik_jarak):
-    #Handle duplikat (pakai kombinasi Wilayah & Tahun biar aman)
+    #Handle duplikat
     df_proc = handle_duplicates(df, key_cols=["Nama Wilayah", "Tahun"])
     if "Tahun" in df.columns:
         df_proc = df_proc.drop_duplicates(subset=["Nama Wilayah", "Tahun"], keep="first")

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import geopandas as gpd
+import streamlit as st
 import folium
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -13,7 +14,7 @@ import tempfile
 import matplotlib.ticker as mticker
 from itertools import combinations
 
-# Deskripsi Indikator
+#Deskripsi Indikator
 indikator_deskripsi = {
     "AHH_L": "Angka Harapan Hidup Laki-laki (tahun)",
     "AHH_P": "Angka Harapan Hidup Perempuan (tahun)",
@@ -23,8 +24,7 @@ indikator_deskripsi = {
     "P2":   "Indeks Keparahan Kemiskinan"
 }
 
-
-# Analisis Cluster
+#Method untuk melakukan analisis cluster
 def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
     fitur_positif = [c for c in ["AHH_L", "AHH_P", "RLS"] if c in fitur_digunakan]
     fitur_negatif = [c for c in ["P0", "P1", "P2"] if c in fitur_digunakan]
@@ -35,15 +35,15 @@ def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
 
     print(f"[Analisis] Algoritma: {algoritma} | Fitur: {fitur_semua}")
 
-    # Jumlah anggota
+    #Jumlah anggota
     jumlah = df["Cluster"].value_counts().sort_index()
     print("Jumlah anggota per cluster:\n", jumlah, "\n")
 
-    # Rata-rata indikator per cluster
+    #Rata-rata indikator per cluster
     rata_c = df.groupby("Cluster")[fitur_semua].mean().round(3)
     print("Rata-rata indikator per cluster:\n", rata_c, "\n")
 
-    # Skor gabungan (for labeling purposes, NOT silhouette)
+    #Skor gabungan
     if fitur_positif and fitur_negatif:
         skor = (rata_c[fitur_positif].mean(axis=1) - rata_c[fitur_negatif].mean(axis=1))
     elif fitur_positif:
@@ -54,14 +54,14 @@ def analisis_cluster(df: pd.DataFrame, fitur_digunakan, algoritma: str = ""):
     ranking = skor.sort_values(ascending=False)
     urutan = ranking.index.tolist()
 
-    # Label cluster sederhana
+    #Label cluster sederhana
     label_cluster = {c: f"Cluster {c}" for c in urutan}
     print("Label cluster:", label_cluster, "\n")
 
     return rata_c, label_cluster, skor
 
 
-# Ringkasan Cluster
+#Method untuk menampilkan ringkasan cluster
 def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
     s = df["Cluster"].astype("Int64")
     hitung = s.value_counts().sort_index()
@@ -98,7 +98,7 @@ def ringkasan_cluster(df: pd.DataFrame, judul: str = "Ringkasan Cluster"):
     return ringkasan, fig
 
 
-# Visualisasi Evaluasi
+#Method untuk menampilkan visualisasi evaluasi
 def visualisasi_evaluasi(df_eval: pd.DataFrame):
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     for algo, subset in df_eval.groupby("Algoritma"):
@@ -115,7 +115,7 @@ def visualisasi_evaluasi(df_eval: pd.DataFrame):
     plt.tight_layout()
     return fig
 
-
+#Method untuk menampilkan kategori silhouette
 def get_kategori_silhouette(score):
     if score >= 0.71:
         return "Struktur Kuat", "#28a745", "Cluster terpisah dengan sangat baik"
@@ -126,8 +126,7 @@ def get_kategori_silhouette(score):
     else:
         return "Tidak Ada Struktur", "#dc3545", "Cluster tidak membentuk struktur yang jelas"
 
-
-# Visualisasi Silhouette
+#Method untuk menampilkan visualisasi silhouette full
 def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndarray, algo: str = "", true_silhouette_score: float = None):
     nilai_sample = silhouette_samples(data_matriks, label_cluster)
     
@@ -165,7 +164,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     ax1.set_xlabel("Nilai Silhouette Coefficient", fontsize=10)
     ax1.set_ylabel("Cluster", fontsize=10)
 
-    # Garis rata-rata silhouette (using true score)
+    #Garis rata-rata silhouette
     ax1.axvline(x=nilai_rata, color="red", linestyle="--", linewidth=1.5)
     
     ax1.text(
@@ -178,7 +177,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
         va="bottom"
     )
     
-    # Garis nol
+    #Garis nol
     ax1.axvline(x=0, color="black", linestyle="--", linewidth=1)
 
     ax1.set_yticks([])
@@ -189,7 +188,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
     
     return fig
 
-
+#Method untuk analisis silhouette per cluster
 def analisis_silhouette_per_cluster(X, labels):
     nilai_sample = silhouette_samples(X, labels)
     hasil = {}
@@ -198,7 +197,7 @@ def analisis_silhouette_per_cluster(X, labels):
     return hasil
 
 
-# Visualisasi Boxplot
+#Method untuk visualisasi boxplot
 def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if not kolom:
@@ -228,7 +227,7 @@ def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
     
     return figures
 
-
+#Method untuk visualisasi scatter plot
 def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if len(kolom) < 2:
@@ -244,8 +243,7 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
         
         for cluster in sorted(df["Cluster"].unique()):
             data_cluster = df[df["Cluster"] == cluster]
-            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], 
-                      alpha=0.6, s=30, label=f"Cluster {cluster}")
+            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], alpha=0.6, s=30, label=f"Cluster {cluster}")
         
         ax.set_xlabel(deskripsi_x, fontsize=10)
         ax.set_ylabel(deskripsi_y, fontsize=10)
@@ -258,7 +256,7 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
     
     return figures
 
-
+#Method untuk menampilkan figure dalam grid
 def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
     n_figs = len(figures)
     idx = 0
@@ -284,7 +282,7 @@ def tampilkan_figures_dalam_grid(st, figures, n_cols=4):
                     st.pyplot(fig, width='stretch')
                     idx += 1
 
-
+#Method untuk menampilkan tren tahunan
 def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col="Nama Wilayah", judul=None, ascending=True):
     if tahun_col not in df.columns or wilayah_col not in df.columns:
         raise ValueError("Kolom 'Tahun' atau 'Nama Wilayah' tidak ditemukan.")
@@ -346,6 +344,7 @@ def visualisasi_tren_tahunan(df, fitur, top_n=10, tahun_col="Tahun", wilayah_col
     plt.tight_layout()
     return fig
 
+#Method untuk menampilkan korelasi variabel
 def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar Variabel"):
     corr = df[variabel].corr(method="pearson")
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -364,13 +363,84 @@ def heatmap_correlation(df: pd.DataFrame, variabel, judul: str = "Korelasi Antar
     
     return fig
 
-
+#Method untuk normalisasi nama
 def normalisasi_nama(nama):
     if pd.isna(nama):
         return nama
     return str(nama).upper().strip()
 
+#Method untuk memberikan deskripsi perbandingan antar cluster
+def deskripsi_perbandingan_cluster(mean_c, indikator_deskripsi):
+    hasil = {}
+    cluster_ids = list(mean_c.index)
 
+    for c in cluster_ids:
+        kalimat = []
+
+        for fitur in mean_c.columns:
+            nilai_c = mean_c.loc[c, fitur]
+
+            lebih_tinggi = []
+            lebih_rendah = []
+
+            for c_lain in cluster_ids:
+                if c_lain == c:
+                    continue
+
+                nilai_lain = mean_c.loc[c_lain, fitur]
+
+                if nilai_c > nilai_lain:
+                    lebih_tinggi.append(c_lain)
+                elif nilai_c < nilai_lain:
+                    lebih_rendah.append(c_lain)
+
+            nama_fitur = indikator_deskripsi.get(fitur, fitur)
+
+            bagian = []
+            if lebih_tinggi:
+                bagian.append(
+                    f"lebih <b>tinggi</b> dibanding <b>Cluster {', '.join(map(str, lebih_tinggi))}</b>"
+                )
+
+            if lebih_rendah:
+                bagian.append(
+                    f"lebih <b>rendah</b> dibanding <b>Cluster {', '.join(map(str, lebih_rendah))}</b>"
+                )
+
+            if not bagian:
+                teks = f"{nama_fitur} memiliki nilai yang relatif serupa antar cluster."
+            else:
+                teks = f"{nama_fitur} " + ", namun ".join(bagian) + "."
+
+            kalimat.append(teks)
+
+        hasil[c] = kalimat
+
+    return hasil
+
+#Method untuk menampilkan card cluster
+def tampilkan_card_cluster(cluster_id, daftar_kalimat):
+    st.markdown(f"""
+    <div style="
+        background-color:#0e1117;
+        border:2px solid #262730;
+        border-radius:12px;
+        padding:20px;
+        margin-bottom:20px;
+        height:100%;
+        display:flex;
+        flex-direction:column;
+    ">
+        <p style="font-size:18px; font-weight:bold; color:#4a9eff; margin-bottom:14px;">
+            Cluster {cluster_id}
+        </p>
+        <ul style="color:#e5e7eb; font-size:14px; padding-left:20px; margin:0; line-height:1.7; flex-grow:1;">
+            {''.join([f"<li style='margin-bottom:10px'>{k}</li>" for k in daftar_kalimat])}
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+#Method untuk mengambil dan mengekstrak shapefile dari GDrive
 def get_shapefile_from_drive(file_id: str):
     temp_dir = tempfile.mkdtemp(prefix="shapefile_")
     temp_zip = os.path.join(temp_dir, "shapefile.zip")
@@ -387,7 +457,7 @@ def get_shapefile_from_drive(file_id: str):
 
     raise FileNotFoundError("File .shp tidak ditemukan setelah ekstraksi")
 
-
+#Method untuk mempersiapkan shapefile
 def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict = None):
     if path.endswith(".gdb"):
         gdf = gpd.read_file(path, layer="ADMINISTRASI_AR_KABKOTA")
@@ -457,9 +527,8 @@ def persiapkan_shapefile(path: str, df_hasil: pd.DataFrame, mapping_manual: dict
 
     return gdf_gabung
 
-
-def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, 
-                   nama_algo: str = "iK-Median", fitur_digunakan=None):
+#Method untuk menampilkan peta
+def tampilkan_peta(gdf: gpd.GeoDataFrame, skor: pd.Series, label_cluster: dict, nama_algo: str = "iK-Median", fitur_digunakan=None):
     if fitur_digunakan is None:
         fitur_digunakan = []
 

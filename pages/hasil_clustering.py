@@ -6,7 +6,7 @@ from api.clustering.visualisasi_clustering import (
     get_kategori_silhouette, visualisasi_scatter_per_pasangan_terpisah, 
     tampilkan_figures_dalam_grid, visualisasi_boxplot_per_indikator_terpisah, 
     heatmap_correlation, get_shapefile_from_drive, persiapkan_shapefile, 
-    tampilkan_peta, indikator_deskripsi
+    tampilkan_peta, indikator_deskripsi, deskripsi_perbandingan_cluster, tampilkan_card_cluster
 )
 from api.hasil_clustering import fig_to_png_bytes, df_to_fig_table, figs_to_pdf, buat_peta_statis, loader
 from streamlit_folium import st_folium
@@ -686,7 +686,58 @@ def show():
     for title, fig in figures_boxplot:
         st.session_state.all_figs.append((title, fig))
 
-            
+    #Ringkasan karakteristik
+    st.markdown(
+        "<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>"
+        "Ringkasan Karakteristik Cluster"
+        "</p>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<p style='color:#9ca3af; font-size:15px; text-align:center; max-width:760px; margin: 0 auto 32px;'>"
+        "Ringkasan ini merangkum perbedaan karakteristik indikator antar cluster "
+        "berdasarkan perbandingan nilai rata-rata yang terlihat pada boxplot."
+        "</p>",
+        unsafe_allow_html=True
+    )
+
+    deskripsi_cluster = deskripsi_perbandingan_cluster(
+        mean_c,
+        indikator_deskripsi
+    )
+
+    cluster_items = list(deskripsi_cluster.items())
+    n_clusters = len(cluster_items)
+    n_cols = 3
+
+    import math
+    n_rows = math.ceil(n_clusters / n_cols)
+
+    st.markdown("""
+    <style>
+        [data-testid="column"] {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        [data-testid="column"] > div {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    idx = 0
+    for row in range(n_rows):
+        cols = st.columns(n_cols)
+        for col_idx in range(n_cols):
+            if idx < n_clusters:
+                cluster_id, kalimat = cluster_items[idx]
+                with cols[col_idx]:
+                    tampilkan_card_cluster(cluster_id, kalimat)
+                idx += 1
+    
     #Peta Hasil Clustering
     st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
     shp_path = get_shapefile_from_drive("1V8K5N0hd917R78UbxNNj224upoxEcoKr")
@@ -715,7 +766,7 @@ def show():
     if fig_map_static is not None:
         st.session_state.all_figs.append(("Peta Hasil Clustering", fig_map_static))
         
-    # Download Visualisasi Clustering
+    #Download Visualisasi Clustering
     st.markdown("<p style='text-align:center; font-size:28px; font-weight:bold; margin-top:86px;'>Download Visualisasi Hasil Clustering</p>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; font-size:18px; margin-bottom:24px;'>Hasil visualisasi yang telah ditampilkan dapat diunduh menggunakan format PNG (Zip) maupun PDF.</p>", unsafe_allow_html=True)
     
@@ -723,7 +774,7 @@ def show():
         col1, col2 = st.columns(2)
 
         with col1:
-            # PNG dalam ZIP
+            #PNG dalam ZIP
             zip_buf = io.BytesIO()
             with zipfile.ZipFile(zip_buf, "w") as zf:
                 for title, fig in st.session_state.all_figs:
@@ -738,7 +789,7 @@ def show():
             )
 
         with col2:
-            # PDF
+            #PDF
             sil_per_cluster = analisis_silhouette_per_cluster(
                 df_hasil[user_input["fitur_digunakan"]].values,
                 df_hasil["Cluster"].values

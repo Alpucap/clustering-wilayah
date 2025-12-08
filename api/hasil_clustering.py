@@ -19,14 +19,11 @@ def fig_to_png_bytes(fig):
 
 #Method untuk mengubah dataframe menjadi figure
 def df_to_fig_table(df, title="Tabel"):
-    # Reset index untuk memastikan tidak ikut terbawa
     df_reset = df.reset_index(drop=True)
     
-    # Buat figure dan axis
     fig, ax = plt.subplots(figsize=(10, len(df_reset) * 0.4 + 1))
     ax.axis("off")
 
-    # Buat tabel tanpa index
     table_obj = ax.table(
         cellText=df_reset.values,
         colLabels=df_reset.columns,
@@ -35,7 +32,6 @@ def df_to_fig_table(df, title="Tabel"):
         colWidths=[0.3] + [0.1]*(len(df_reset.columns)-1)
     )
 
-    # Styling opsional
     table_obj.auto_set_font_size(False)
     table_obj.set_fontsize(9)
     table_obj.scale(1.2, 1.2)
