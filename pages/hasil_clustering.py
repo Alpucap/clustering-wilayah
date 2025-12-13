@@ -87,7 +87,7 @@ def show():
     )
     summary, fig = ringkasan_cluster(
         df_hasil, 
-        f"Jumlah Anggota per Cluster ({user_input['metode_clustering']})"
+        f"Jumlah Anggota per Cluster dengan algoritma {user_input['metode_clustering']}"
     )
 
     col1, col2 = st.columns([3, 3])
@@ -406,7 +406,7 @@ def show():
     with placeholder.container():
         loader("Membuat heatmap korelasi variabel...")
 
-    fig_heatmap = heatmap_correlation(df_hasil, vars_, "Heatmap Korelasi Variabel")
+    fig_heatmap = heatmap_correlation(df_hasil, vars_, "Heatmap Korelasi Antar Variabel")
     placeholder.empty()
 
     col1, col2 = st.columns(2)
@@ -739,7 +739,7 @@ def show():
                 idx += 1
     
     #Peta Hasil Clustering
-    st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Pemetaan Hasil Clustering</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-size:24px; font-weight:bold; margin-top:48px;'>Peta sebaran hasil clustering kota/kabupaten di Indonesia</p>", unsafe_allow_html=True)
     shp_path = get_shapefile_from_drive("1V8K5N0hd917R78UbxNNj224upoxEcoKr")
     fig_map_static = None
     try:

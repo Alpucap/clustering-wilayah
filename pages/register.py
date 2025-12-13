@@ -87,5 +87,5 @@ def show():
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         if st.button("Sudah Punya Akun? Login sekarang", width= 'stretch'):
-            st.session_state.page = "register"
+            st.session_state.page = "login"
             st.rerun()

@@ -96,7 +96,7 @@ def buat_peta_statis(gdf_map, labels, cluster_col="Cluster"):
         legend=False
     )
 
-    ax.set_title("Peta Sebaran Hasil Clustering", fontsize=16, fontweight="bold", pad=20)
+    ax.set_title("Peta sebaran hasil clustering kota/kabupaten di Indonesia", fontsize=16, fontweight="bold", pad=20)
     ax.axis("off")
 
     handles = []

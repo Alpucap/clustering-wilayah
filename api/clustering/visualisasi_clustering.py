@@ -160,7 +160,12 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
         ax1.text(-0.05, y_bawah + 0.5 * ukuran_i, str(i), fontsize=9)
         y_bawah = y_atas + 5
 
-    ax1.set_title(f"Plot Silhouette ({algo})", fontsize=11, pad=10) 
+    ax1.set_title(
+        f"Plot Silhouette Hasil Clustering Wilayah Indonesia "
+        f"menggunakan algoritma {algo}",
+        fontsize=11,
+        pad=10
+    ) 
     ax1.set_xlabel("Nilai Silhouette Coefficient", fontsize=10)
     ax1.set_ylabel("Cluster", fontsize=10)
 
@@ -219,7 +224,11 @@ def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
         
         ax.set_xlabel("Cluster", fontsize=10)
         ax.set_ylabel(deskripsi, fontsize=10)
-        ax.set_title(f"Boxplot {deskripsi}", fontsize=11, pad=10)
+        ax.set_title(
+            f"Distribusi {deskripsi} pada Setiap Cluster",
+            fontsize=11,
+            pad=10
+        )
         ax.grid(True, alpha=0.3, axis='y')
         
         plt.tight_layout()
@@ -247,7 +256,11 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
         
         ax.set_xlabel(deskripsi_x, fontsize=10)
         ax.set_ylabel(deskripsi_y, fontsize=10)
-        ax.set_title(f"{deskripsi_x} vs {deskripsi_y}", fontsize=11, pad=10)
+        ax.set_title(
+            f"Pola Distribusi {deskripsi_x} dan {deskripsi_y}",
+            fontsize=11,
+            pad=10
+        )
         ax.legend(fontsize=9, loc='best')
         ax.grid(True, alpha=0.3)
         
