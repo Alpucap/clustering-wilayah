@@ -27,7 +27,7 @@ def show():
     )
 
     #Manual Book
-    with open("assets/files/Manual_Book.pdf", "rb") as file_manual:
+    with open("Manual_Book.pdf", "rb") as file_manual:
         st.download_button(
             label="Download Buku Manual / Panduan Website",
             data=file_manual,
