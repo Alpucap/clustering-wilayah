@@ -161,7 +161,7 @@ def visualisasi_silhouette_full(data_matriks: np.ndarray, label_cluster: np.ndar
         y_bawah = y_atas + 5
 
     ax1.set_title(
-        f"Plot Silhouette Hasil Clustering Wilayah Indonesia "
+        f"Plot Silhouette Hasil Clustering Wilayah Indonesia \n"
         f"menggunakan algoritma {algo}",
         fontsize=11,
         pad=10
@@ -224,8 +224,17 @@ def visualisasi_boxplot_per_indikator_terpisah(df, fitur_digunakan, algo=""):
         
         ax.set_xlabel("Cluster", fontsize=10)
         ax.set_ylabel(deskripsi, fontsize=10)
+        if "Tahun" in df_plot.columns:
+            tahun_unik = sorted(df_plot["Tahun"].unique())
+            if len(tahun_unik) == 1:
+                info_tahun = f"Tahun {tahun_unik[0]}"
+            else:
+                info_tahun = f"Tahun {tahun_unik[0]}–{tahun_unik[-1]}"
+        else:
+            info_tahun = ""
+
         ax.set_title(
-            f"Distribusi {deskripsi} pada Setiap Cluster",
+            f"Distribusi {deskripsi} per Cluster ({info_tahun})",
             fontsize=11,
             pad=10
         )
@@ -241,32 +250,47 @@ def visualisasi_scatter_per_pasangan_terpisah(df, fitur_digunakan, algo=""):
     kolom = [c for c in fitur_digunakan if c in df.columns]
     if len(kolom) < 2:
         raise ValueError("Minimal 2 fitur diperlukan untuk scatterplot.")
-    
+
+    info_tahun = ""
+    if "Tahun" in df.columns:
+        tahun_unik = sorted(df["Tahun"].dropna().unique())
+        if len(tahun_unik) == 1:
+            info_tahun = f"Tahun {int(tahun_unik[0])}"
+        elif len(tahun_unik) > 1:
+            info_tahun = f"Tahun {int(tahun_unik[0])}–{int(tahun_unik[-1])}"
+
     pasangan = list(combinations(kolom, 2))
     figures = []
-    
+
     for fitur_x, fitur_y in pasangan:
         fig, ax = plt.subplots(figsize=(5.5, 4))
         deskripsi_x = indikator_deskripsi.get(fitur_x, fitur_x)
         deskripsi_y = indikator_deskripsi.get(fitur_y, fitur_y)
-        
         for cluster in sorted(df["Cluster"].unique()):
             data_cluster = df[df["Cluster"] == cluster]
-            ax.scatter(data_cluster[fitur_x], data_cluster[fitur_y], alpha=0.6, s=30, label=f"Cluster {cluster}")
-        
+            ax.scatter(
+                data_cluster[fitur_x],
+                data_cluster[fitur_y],
+                alpha=0.6,
+                s=30,
+                label=f"Cluster {cluster}"
+            )
+
+        judul_tahun = f"\n({info_tahun})" if info_tahun else ""
+
         ax.set_xlabel(deskripsi_x, fontsize=10)
         ax.set_ylabel(deskripsi_y, fontsize=10)
         ax.set_title(
-            f"Pola Distribusi {deskripsi_x} dan {deskripsi_y}",
+            f"Pola Distribusi {deskripsi_x} dan {deskripsi_y}{judul_tahun}",
             fontsize=11,
             pad=10
         )
-        ax.legend(fontsize=9, loc='best')
+        ax.legend(fontsize=9, loc="best")
         ax.grid(True, alpha=0.3)
-        
+
         plt.tight_layout()
         figures.append((f"Scatter {deskripsi_x} vs {deskripsi_y}", fig))
-    
+
     return figures
 
 #Method untuk menampilkan figure dalam grid
