@@ -14,7 +14,7 @@ import pages.riwayat as riwayat
 
 from database import SessionLocal
 from api import get_user_by_id
-from streamlit_cookies_manager import EncryptedCookieManager
+import extra_streamlit_components as stx
 
 def page_loader():
     st.markdown(
@@ -49,10 +49,10 @@ st.set_page_config(
 )
 
 #Setup cookies manager
-secret = st.secrets["COOKIE_PASSWORD"]
-cookies = EncryptedCookieManager(prefix="clustering_app_", password=secret)
-if not cookies.ready():
-    st.stop()
+def get_cookie_manager():
+    return stx.CookieManager()
+
+cookies = get_cookie_manager()
 
 #Restore dari cookies
 if "user_id" not in st.session_state:
@@ -68,10 +68,9 @@ if "user_id" in st.session_state:
     user = get_user_by_id(db, st.session_state["user_id"])
     if not user:
         st.session_state.clear()
-        cookies["user_id"] = ""
-        cookies["username"] = ""
-        cookies["page"] = ""
-        cookies.save()
+        cookies.delete("user_id")
+        cookies.delete("username")
+        cookies.delete("page")
 
 #Inisialisasi halaman default
 if "page" not in st.session_state:

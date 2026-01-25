@@ -4,35 +4,34 @@ def render_sidebar(cookies=None):
     def set_page(page_name):
         st.session_state.page = page_name
         if cookies is not None:
-            cookies["page"] = page_name
-            cookies.save()
+            cookies.set("page", page_name)
         st.rerun()
 
-    if st.sidebar.button("Beranda", width= 'stretch'):
+    if st.sidebar.button("Beranda", use_container_width=True):
         set_page("beranda")
 
-    if st.sidebar.button("Clustering Wilayah", width= 'stretch'):
+    if st.sidebar.button("Clustering Wilayah", use_container_width=True):
         set_page("clustering_wilayah")
     
-    if st.sidebar.button("Hasil Clustering Wilayah", width= 'stretch'):
+    if st.sidebar.button("Hasil Clustering Wilayah", use_container_width=True):
         set_page("hasil_clustering")
     
-    if st.sidebar.button("Riwayat Clustering", width= 'stretch'): 
+    if st.sidebar.button("Riwayat Clustering", use_container_width=True): 
         set_page("riwayat")
 
-    if st.sidebar.button("Petunjuk Penggunaan", width= 'stretch'):
+    if st.sidebar.button("Petunjuk Penggunaan", use_container_width=True):
         set_page("petunjuk_penggunaan_website")
 
-    if st.sidebar.button("Tentang", width= 'stretch'):
+    if st.sidebar.button("Tentang", use_container_width=True):
         set_page("tentang")
 
     st.sidebar.markdown("---")
 
     if "user_id" not in st.session_state:
-        if st.sidebar.button("Login", width= 'stretch'):
+        if st.sidebar.button("Login", use_container_width=True):
             set_page("login")
-        if st.sidebar.button("Register", width= 'stretch'):
+        if st.sidebar.button("Register", use_container_width=True):
             set_page("register")
     else:
-        if st.sidebar.button("Profile", width= 'stretch'):
+        if st.sidebar.button("Profile", use_container_width=True):
             set_page("profile")

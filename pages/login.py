@@ -32,7 +32,7 @@ def show(cookies):
     
     #Login
     st.markdown("<small>* Field wajib diisi</small>", unsafe_allow_html=True)
-    if st.button("Login", width= 'stretch'):
+    if st.button("Login", use_container_width=True):
         db = SessionLocal()
         errors = validate_login_fields(email, password, db)
 
@@ -46,9 +46,8 @@ def show(cookies):
             st.session_state["user_id"] = str(user.user_id)
             st.session_state["username"] = user.username
 
-            cookies["user_id"] = str(user.user_id)
-            cookies["username"] = user.username
-            cookies.save()
+            cookies.set("user_id", str(user.user_id))
+            cookies.set("username", user.username)
 
             st.success(f"Selamat datang, {user.username}!")
             st.session_state.page = "beranda"
@@ -59,6 +58,6 @@ def show(cookies):
     #Link ke register
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
-        if st.button("Belum Punya Akun? Daftar sekarang", width= 'stretch'):
+        if st.button("Belum Punya Akun? Daftar sekarang", use_container_width=True):
             st.session_state.page = "register"
             st.rerun()
